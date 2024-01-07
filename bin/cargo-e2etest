@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+if ! [ -d $PROJECTDIR/e2etest ]; then
+    echo "No e2etest directory."
+    exit 1
+fi
+
+cd $PROJECTDIR/e2etest
+
+if [ $# -ge 2 ] && [ $2 = "clean" ]; then
+    rm */*/result.*
+    exit 0
+fi
+
+for group in *; do
+    cd $group
+    for test in *; do
+        cd $test
+        ../../../target/debug/jasc < code.js > result.out 2> result.tmp.err
+        grep -v '^thread .* panicked at' result.tmp.err | grep -v '^note: run with' > result.err
+        rm result.tmp.err
+        if ! diff -s expected.out result.out > /dev/null || ! diff -s expected.err result.err > /dev/null; then
+            echo === test $group/$test failed ===
+            if ! diff -s expected.out result.out > /dev/null; then
+                echo "== stdout expected <-> result =="
+                diff -y expected.out result.out
+            fi
+            if ! diff -s expected.err result.err > /dev/null; then
+                echo "== stderr expected <-> result =="
+                diff -y expected.err result.err
+            fi
+        fi
+        cd ..
+    done
+    cd ..
+done
+

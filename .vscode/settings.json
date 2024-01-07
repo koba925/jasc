@@ -1,0 +1,6 @@
+{
+    "terminal.integrated.env.linux": {
+        "PROJECTDIR": "${workspaceFolder}",
+        "PATH": "${env:PATH}:${workspaceFolder}/bin"
+    }
+}
