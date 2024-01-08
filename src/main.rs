@@ -1,42 +1,46 @@
 use std::io;
 
+mod error;
 mod scanner;
 mod token;
 
+use error::Error;
 use scanner::Scanner;
 use token::TokenType;
 
-fn run(src: String) {
+fn run(src: String) -> Result<f64, Vec<Error>> {
     let mut scanner = Scanner::new(src);
-    scanner.scan();
-    if scanner.has_error {
-        return;
-    }
+    let tokens = scanner.scan()?;
 
-    match scanner.tokens[0].tt {
-        TokenType::Number(_) => (),
+    let value = match tokens[0].tt {
+        TokenType::Number(value) => value,
         _ => {
-            eprintln!("Error: number expected.");
-            return;
+            return Err(vec![Error::GenericError {
+                msg: "Error: number expected.".to_string(),
+            }])
         }
-    }
-    match scanner.tokens[1].tt {
+    };
+
+    match tokens[1].tt {
         TokenType::Semicolon => (),
         _ => {
-            eprintln!("Error: semicolon expected.");
-            return;
+            return Err(vec![Error::GenericError {
+                msg: "Error: semicolon expected.".to_string(),
+            }])
         }
     }
 
-    match scanner.tokens[0].tt {
-        TokenType::Number(value) => {
-            println!("{}", value);
-        }
-        _ => (),
-    }
+    Ok(value)
 }
 
 fn main() {
     let src = io::read_to_string(io::stdin()).expect("Error: failed to read the code.");
-    run(src);
+    match run(src) {
+        Ok(value) => println!("{value}"),
+        Err(errors) => {
+            for e in errors {
+                eprintln!("{}", e)
+            }
+        }
+    }
 }
