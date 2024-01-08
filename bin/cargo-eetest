@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 
-if ! [ -d $PROJECTDIR/e2etest ]; then
-    echo "No e2etest directory."
+cargo build
+
+if ! [ -d $PROJECTDIR/eetest ]; then
+    echo "No eetest directory."
     exit 1
 fi
 
-cd $PROJECTDIR/e2etest
+cd $PROJECTDIR/eetest
 
 if [ $# -ge 2 ] && [ $2 = "clean" ]; then
     rm */*/result.*
     exit 0
 fi
+
+export RUST_BACKTRACE=1
 
 for group in *; do
     cd $group
