@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::token::{Token, TokenType};
+use crate::token::{Token, TokenValue};
 
 #[derive(Debug)]
 pub struct Scanner {
@@ -22,14 +22,17 @@ impl Scanner {
         let mut errors = vec![];
 
         self.skip_whitespaces();
-        while !self.at_end() {
+        while !self.is_at_end() {
             match self.scan_token() {
                 Ok(token) => tokens.push(token),
                 Err(error) => errors.push(error),
             }
             self.skip_whitespaces();
         }
-        tokens.push(self.make_token(TokenType::EOF));
+
+        self.start = self.current;
+        tokens.push(self.make_token(TokenValue::EOF));
+
         if errors.is_empty() {
             Ok(tokens)
         } else {
@@ -41,27 +44,27 @@ impl Scanner {
         self.start = self.current;
 
         match self.advance() {
-            ';' => Ok(self.make_token(TokenType::Semicolon)),
+            ';' => Ok(self.make_token(TokenValue::Semicolon)),
             c if c.is_ascii_digit() => Ok(self.number()),
             c => Err(Error::UnexpectedCharacter { c }),
         }
     }
 
     fn skip_whitespaces(&mut self) {
-        while !self.at_end() && self.peek().is_whitespace() {
+        while !self.is_at_end() && self.peek().is_whitespace() {
             self.advance();
         }
     }
 
     fn number(&mut self) -> Token {
-        while !self.at_end() && self.peek().is_ascii_digit() {
+        while !self.is_at_end() && self.peek().is_ascii_digit() {
             self.advance();
         }
-        self.make_token(TokenType::Number(self.lexeme().parse().unwrap()))
+        self.make_token(TokenValue::Number(self.lexeme().parse().unwrap()))
     }
 
-    fn make_token(&self, tt: TokenType) -> Token {
-        Token::new(tt, self.lexeme())
+    fn make_token(&self, val: TokenValue) -> Token {
+        Token::new(val, self.lexeme())
     }
 
     // self.currentの手前の文字までを切り出すことに注意
@@ -74,7 +77,7 @@ impl Scanner {
         self.src[self.current - 1]
     }
 
-    fn at_end(&self) -> bool {
+    fn is_at_end(&self) -> bool {
         self.current >= self.src.len()
     }
 

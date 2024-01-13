@@ -1,36 +1,18 @@
 use std::io;
 
 mod error;
+mod parser;
 mod scanner;
 mod token;
 
 use error::Error;
+use parser::Parser;
 use scanner::Scanner;
-use token::TokenType;
 
 fn run(src: String) -> Result<f64, Vec<Error>> {
-    let mut scanner = Scanner::new(src);
-    let tokens = scanner.scan()?;
-
-    let value = match tokens[0].tt {
-        TokenType::Number(value) => value,
-        _ => {
-            return Err(vec![Error::GenericError {
-                msg: "Error: number expected.".to_string(),
-            }])
-        }
-    };
-
-    match tokens[1].tt {
-        TokenType::Semicolon => (),
-        _ => {
-            return Err(vec![Error::GenericError {
-                msg: "Error: semicolon expected.".to_string(),
-            }])
-        }
-    }
-
-    Ok(value)
+    Scanner::new(src)
+        .scan()
+        .and_then(|tokens| Parser::new(tokens).parse())
 }
 
 fn main() {
@@ -39,7 +21,7 @@ fn main() {
         Ok(value) => println!("{value}"),
         Err(errors) => {
             for e in errors {
-                eprintln!("{}", e)
+                e.report();
             }
         }
     }

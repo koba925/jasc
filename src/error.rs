@@ -8,3 +8,9 @@ pub enum Error {
     #[error("Unexpected character ('{c}')")]
     UnexpectedCharacter { c: char },
 }
+
+impl Error {
+    pub fn report(&self) {
+        eprintln!("Error: {self}")
+    }
+}
