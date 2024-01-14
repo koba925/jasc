@@ -2,5 +2,9 @@
     "terminal.integrated.env.linux": {
         "PROJECTDIR": "${workspaceFolder}",
         "PATH": "${env:PATH}:${workspaceFolder}/bin"
-    }
+    },
+    "[javascript]": {
+        "editor.maxTokenizationLineLength": 2500,
+        "editor.formatOnSave": false,
+    },
 }
