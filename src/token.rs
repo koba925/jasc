@@ -9,10 +9,11 @@ pub enum TokenValue {
 pub struct Token {
     pub val: TokenValue,
     pub lexeme: String,
+    pub line: usize,
 }
 
 impl Token {
-    pub fn new(val: TokenValue, lexeme: String) -> Token {
-        Token { val, lexeme }
+    pub fn new(val: TokenValue, lexeme: String, line: usize) -> Token {
+        Token { val, lexeme, line }
     }
 }

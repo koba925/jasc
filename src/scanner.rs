@@ -6,6 +6,7 @@ pub struct Scanner {
     src: Vec<char>,
     start: usize,
     current: usize,
+    line: usize,
 }
 
 impl Scanner {
@@ -14,6 +15,7 @@ impl Scanner {
             src: src.chars().collect(),
             start: 0,
             current: 0,
+            line: 1,
         }
     }
 
@@ -46,12 +48,15 @@ impl Scanner {
         match self.advance() {
             ';' => Ok(self.make_token(TokenValue::Semicolon)),
             c if c.is_ascii_digit() => Ok(self.number()),
-            c => Err(Error::UnexpectedCharacter { c }),
+            c => Err(Error::UnexpectedCharacter { line: self.line, c }),
         }
     }
 
     fn skip_whitespaces(&mut self) {
         while !self.is_at_end() && self.peek().is_whitespace() {
+            if self.peek() == '\n' {
+                self.line += 1
+            }
             self.advance();
         }
     }
@@ -64,7 +69,7 @@ impl Scanner {
     }
 
     fn make_token(&self, val: TokenValue) -> Token {
-        Token::new(val, self.lexeme())
+        Token::new(val, self.lexeme(), self.line)
     }
 
     // self.currentの手前の文字までを切り出すことに注意

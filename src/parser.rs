@@ -40,6 +40,7 @@ impl Parser {
         match self.advance().val {
             TokenValue::Number(value) => Ok(value),
             _ => Err(Error::GenericError {
+                line: self.peek().line,
                 msg: "Number expected.".to_string(),
             }),
         }
@@ -50,6 +51,7 @@ impl Parser {
             Ok(self.advance())
         } else {
             Err(Error::GenericError {
+                line: self.peek().line,
                 msg: msg.to_string(),
             })
         }
