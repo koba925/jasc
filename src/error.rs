@@ -1,6 +1,6 @@
 use thiserror::Error; // https://docs.rs/thiserror/
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum Error {
     #[error("[line {line}] Error: {msg}")]
     GenericError { line: usize, msg: String },
