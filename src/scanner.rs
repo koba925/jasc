@@ -48,7 +48,10 @@ impl Scanner {
         match self.advance() {
             ';' => Ok(self.make_token(TokenValue::Semicolon)),
             c if c.is_ascii_digit() => Ok(self.number()),
-            c => Err(Error::UnexpectedCharacter { line: self.line, c }),
+            c => Err(Error::new(
+                self.line,
+                format!("Unexpected character ('{}').", c),
+            )),
         }
     }
 

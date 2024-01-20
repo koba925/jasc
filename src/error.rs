@@ -1,16 +1,15 @@
-use thiserror::Error; // https://docs.rs/thiserror/
-
-#[derive(Error, Debug, PartialEq)]
-pub enum Error {
-    #[error("[line {line}] Error: {msg}")]
-    GenericError { line: usize, msg: String },
-
-    #[error("[line {line}] Error: Unexpected character ('{c}')")]
-    UnexpectedCharacter { line: usize, c: char },
+#[derive(Debug)]
+pub struct Error {
+    pub line: usize,
+    pub msg: String,
 }
 
 impl Error {
+    pub fn new(line: usize, msg: String) -> Error {
+        Error { line, msg }
+    }
+
     pub fn report(&self) {
-        eprintln!("{self}")
+        eprintln!("[line {}] Error: {}", self.line, self.msg)
     }
 }

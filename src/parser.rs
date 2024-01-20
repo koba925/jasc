@@ -39,10 +39,7 @@ impl Parser {
     fn primary(&mut self) -> Result<f64> {
         match self.advance().val {
             TokenValue::Number(value) => Ok(value),
-            _ => Err(Error::GenericError {
-                line: self.peek().line,
-                msg: "Number expected.".to_string(),
-            }),
+            _ => Err(Error::new(self.peek().line, "Number expected.".to_string())),
         }
     }
 
@@ -50,10 +47,7 @@ impl Parser {
         if self.check(expected) {
             Ok(self.advance())
         } else {
-            Err(Error::GenericError {
-                line: self.peek().line,
-                msg: msg.to_string(),
-            })
+            Err(Error::new(self.peek().line, msg.to_string()))
         }
     }
 

@@ -3,9 +3,9 @@ fn unexpected_character() {
     let result = jasc::run("@".to_string());
     match result {
         Err(ve) if ve.len() == 1 => match ve.get(0) {
-            Some(jasc::error::Error::UnexpectedCharacter { line, c }) => {
+            Some(jasc::error::Error { line, msg }) => {
                 assert_eq!(*line, 1);
-                assert_eq!(*c, '@');
+                assert_eq!(*msg, "Unexpected character ('@').");
             }
             _ => panic!("Failed - ve: {:?}", ve),
         },
@@ -26,9 +26,9 @@ fn no_semicolon() {
     let result = jasc::run("123".to_string());
     match result {
         Err(ve) if ve.len() == 1 => match ve.get(0) {
-            Some(jasc::error::Error::GenericError { line, msg }) => {
+            Some(jasc::error::Error { line, msg }) => {
                 assert_eq!(*line, 1);
-                assert_eq!(*msg, "Semicolon expected.".to_string());
+                assert_eq!(*msg, "Semicolon expected.");
             }
             _ => panic!("Failed - ve: {:?}", ve),
         },
