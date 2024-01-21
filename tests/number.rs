@@ -1,6 +1,7 @@
+use jasc::ast::Value;
 use jasc::error::Error;
 
-fn run_ok(src: &str, expected: f64) {
+fn run_ok(src: &str, expected: Value) {
     match jasc::run(src) {
         Ok(value) => assert_eq!(value, expected),
         Err(ve) => panic!("Failed - ve: {:?}", ve),
@@ -24,7 +25,7 @@ fn unexpected_character() {
 
 #[test]
 fn simple_number() {
-    run_ok("123;", 123.0)
+    run_ok("123;", Value::Number(123.0))
 }
 
 #[test]

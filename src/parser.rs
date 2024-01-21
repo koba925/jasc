@@ -1,3 +1,4 @@
+use crate::ast::{Expr, Value};
 use crate::error::Error;
 use crate::token::{Token, TokenValue};
 
@@ -13,8 +14,8 @@ impl Parser {
         Parser { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Result<f64, Vec<Error>> {
-        let mut expr = 0.0;
+    pub fn parse(&mut self) -> Result<Expr, Vec<Error>> {
+        let mut expr = Expr::Literal(Value::Number(0.0));
         let mut errors = vec![];
 
         match self.expression() {
@@ -32,13 +33,13 @@ impl Parser {
         }
     }
 
-    fn expression(&mut self) -> Result<f64> {
+    fn expression(&mut self) -> Result<Expr> {
         self.primary()
     }
 
-    fn primary(&mut self) -> Result<f64> {
+    fn primary(&mut self) -> Result<Expr> {
         match self.advance().val {
-            TokenValue::Number(value) => Ok(value),
+            TokenValue::Number(value) => Ok(Expr::Literal(Value::Number(value))),
             _ => Err(Error::new(self.peek().line, "Number expected.")),
         }
     }
