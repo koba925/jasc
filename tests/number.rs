@@ -1,37 +1,36 @@
-#[test]
-fn unexpected_character() {
-    let result = jasc::run("@".to_string());
+use jasc::error::Error;
+
+fn run_ok(src: &str, expected: f64) {
+    match jasc::run(src.to_string()) {
+        Ok(value) => assert_eq!(value, expected),
+        Err(ve) => panic!("Failed - ve: {:?}", ve),
+    }
+}
+
+fn run_err(src: &str, vexpected: Vec<Error>) {
+    let result = jasc::run(src.to_string());
     match result {
-        Err(ve) if ve.len() == 1 => match ve.get(0) {
-            Some(jasc::error::Error { line, msg }) => {
-                assert_eq!(*line, 1);
-                assert_eq!(*msg, "Unexpected character ('@').");
-            }
-            _ => panic!("Failed - ve: {:?}", ve),
-        },
+        Err(ve) => {
+            assert_eq!(ve, vexpected)
+        }
         _ => panic!("Failed - result: {:?}", result),
     };
+}
+
+#[test]
+fn unexpected_character() {
+    run_err(
+        "@",
+        vec![Error::new(1, "Unexpected character ('@').".to_string())],
+    );
 }
 
 #[test]
 fn simple_number() {
-    match jasc::run("123;".to_string()) {
-        Ok(value) => assert_eq!(value, 123.0),
-        _ => panic!("failed"),
-    }
+    run_ok("123;", 123.0)
 }
 
 #[test]
 fn no_semicolon() {
-    let result = jasc::run("123".to_string());
-    match result {
-        Err(ve) if ve.len() == 1 => match ve.get(0) {
-            Some(jasc::error::Error { line, msg }) => {
-                assert_eq!(*line, 1);
-                assert_eq!(*msg, "Semicolon expected.");
-            }
-            _ => panic!("Failed - ve: {:?}", ve),
-        },
-        _ => panic!("Failed - result: {:?}", result),
-    };
+    run_err("123", vec![Err::new(1, "Semicolon expected".to_string())]);
 }

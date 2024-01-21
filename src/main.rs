@@ -1,5 +1,4 @@
-// DOING: ユニットテストを書く
-// TODO: Errorをシンプルにする
+// TODO: Error:newがstrも受け取れるようにする
 
 use std::io;
 
