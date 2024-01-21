@@ -7,8 +7,8 @@ use error::Error;
 use parser::Parser;
 use scanner::Scanner;
 
-pub fn run(src: String) -> Result<f64, Vec<Error>> {
-    Scanner::new(src)
+pub fn run(src: impl Into<String>) -> Result<f64, Vec<Error>> {
+    Scanner::new(src.into())
         .scan()
         .and_then(|tokens| Parser::new(tokens).parse())
 }

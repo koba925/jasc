@@ -1,14 +1,14 @@
 use jasc::error::Error;
 
 fn run_ok(src: &str, expected: f64) {
-    match jasc::run(src.to_string()) {
+    match jasc::run(src) {
         Ok(value) => assert_eq!(value, expected),
         Err(ve) => panic!("Failed - ve: {:?}", ve),
     }
 }
 
 fn run_err(src: &str, vexpected: Vec<Error>) {
-    let result = jasc::run(src.to_string());
+    let result = jasc::run(src);
     match result {
         Err(ve) => {
             assert_eq!(ve, vexpected)
