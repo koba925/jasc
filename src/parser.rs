@@ -39,15 +39,15 @@ impl Parser {
     fn primary(&mut self) -> Result<f64> {
         match self.advance().val {
             TokenValue::Number(value) => Ok(value),
-            _ => Err(Error::new(self.peek().line, "Number expected.".to_string())),
+            _ => Err(Error::new(self.peek().line, "Number expected.")),
         }
     }
 
-    fn consume<S: ToString>(&mut self, expected: TokenValue, msg: S) -> Result<&Token> {
+    fn consume(&mut self, expected: TokenValue, msg: impl Into<String>) -> Result<&Token> {
         if self.check(expected) {
             Ok(self.advance())
         } else {
-            Err(Error::new(self.peek().line, msg.to_string()))
+            Err(Error::new(self.peek().line, msg))
         }
     }
 

@@ -5,8 +5,11 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn new(line: usize, msg: String) -> Error {
-        Error { line, msg }
+    pub fn new(line: usize, msg: impl Into<String>) -> Error {
+        Error {
+            line,
+            msg: msg.into(),
+        }
     }
 
     pub fn report(&self) {

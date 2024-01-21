@@ -1,4 +1,4 @@
-// TODO: Error:newがstrも受け取れるようにする
+// TODO: Error::newがstrも受け取れるようにする
 
 use std::io;
 

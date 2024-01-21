@@ -19,10 +19,7 @@ fn run_err(src: &str, vexpected: Vec<Error>) {
 
 #[test]
 fn unexpected_character() {
-    run_err(
-        "@",
-        vec![Error::new(1, "Unexpected character ('@').".to_string())],
-    );
+    run_err("@", vec![Error::new(1, "Unexpected character ('@').")]);
 }
 
 #[test]
@@ -32,8 +29,5 @@ fn simple_number() {
 
 #[test]
 fn no_semicolon() {
-    run_err(
-        "123",
-        vec![Error::new(1, "Semicolon expected.".to_string())],
-    );
+    run_err("123", vec![Error::new(1, "Semicolon expected.")]);
 }
