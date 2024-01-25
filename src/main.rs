@@ -1,3 +1,7 @@
+// TODO:足し算のテストケースを追加する
+// TODO:integration testのファイルを分割する
+// TODO:matchesを作る
+
 use std::io;
 
 fn main() {

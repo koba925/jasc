@@ -32,3 +32,8 @@ fn simple_number() {
 fn no_semicolon() {
     run_err("123", vec![Error::new(1, "Semicolon expected.")]);
 }
+
+#[test]
+fn simple_addition() {
+    run_ok("12+34;", Value::Number(46.0))
+}

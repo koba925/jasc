@@ -1,3 +1,5 @@
+use crate::token::Token;
+
 #[derive(Debug, PartialEq)]
 pub enum Value {
     Number(f64),
@@ -5,5 +7,6 @@ pub enum Value {
 
 #[derive(Debug, PartialEq)]
 pub enum Expr {
+    Binary(Box<Expr>, Token, Box<Expr>),
     Literal(Value),
 }
