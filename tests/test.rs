@@ -47,6 +47,11 @@ mod expression {
     }
 
     #[test]
+    fn simple_subtraction() {
+        run::ok("34-12;", Value::Number(22.0))
+    }
+
+    #[test]
     fn addition_missing_right() {
         run::err1("12+;", 1, "Number expected.");
     }

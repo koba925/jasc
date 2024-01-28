@@ -47,6 +47,7 @@ impl Scanner {
 
         match self.advance() {
             '+' => Ok(self.make_token(TokenValue::Plus)),
+            '-' => Ok(self.make_token(TokenValue::Minus)),
             ';' => Ok(self.make_token(TokenValue::Semicolon)),
             c if c.is_ascii_digit() => Ok(self.number()),
             c => Err(Error::new(

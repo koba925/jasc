@@ -1,6 +1,7 @@
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenValue {
     Plus,
+    Minus,
     Semicolon,
     Number(f64),
     EOF,
