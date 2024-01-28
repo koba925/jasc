@@ -20,15 +20,15 @@ impl Interpreter {
                     (Expr::Literal(l), Expr::Literal(r)) => match (l, r) {
                         (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l + r)),
                     },
-                    _ => Err(vec![Error::new(1, "Runtime Error")]),
+                    _ => Err(vec![Error::from_token(&op, "Operands must be numbers.")]),
                 },
                 TokenValue::Minus => match (*left, *right) {
                     (Expr::Literal(l), Expr::Literal(r)) => match (l, r) {
                         (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l - r)),
                     },
-                    _ => Err(vec![Error::new(1, "Runtime Error")]),
+                    _ => Err(vec![Error::from_token(&op, "Operands must be numbers.")]),
                 },
-                _ => Err(vec![Error::new(1, "Runtime Error")]),
+                _ => Err(vec![Error::from_token(&op, "Unknown operation.")]),
             },
         }
     }

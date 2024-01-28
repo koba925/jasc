@@ -52,6 +52,7 @@ impl Scanner {
             c if c.is_ascii_digit() => Ok(self.number()),
             c => Err(Error::new(
                 self.line,
+                format!(" at '{}'", c),
                 &format!("Unexpected character ('{}').", c),
             )),
         }

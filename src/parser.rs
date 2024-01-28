@@ -53,7 +53,7 @@ impl Parser {
     fn primary(&mut self) -> Result<Expr> {
         match self.advance().val {
             TokenValue::Number(value) => Ok(Expr::Literal(Value::Number(value))),
-            _ => Err(Error::new(self.peek().line, "Number expected.")),
+            _ => Err(Error::from_token(self.peek(), "Number expected.")),
         }
     }
 
@@ -61,7 +61,7 @@ impl Parser {
         if self.check(expected) {
             Ok(self.advance())
         } else {
-            Err(Error::new(self.peek().line, msg))
+            Err(Error::from_token(self.peek(), msg))
         }
     }
 
