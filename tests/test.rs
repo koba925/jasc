@@ -40,6 +40,7 @@ mod scanner {
 mod expression {
     use crate::run;
     use jasc::ast::Value;
+    use jasc::error::Error;
 
     #[test]
     fn simple_number() {
@@ -58,7 +59,13 @@ mod expression {
 
     #[test]
     fn addition_missing_right() {
-        run::err1("12+;", 1, "Number expected.");
+        run::err(
+            "12+;",
+            vec![
+                Error::new(1, "Number expected."),
+                Error::new(1, "Semicolon expected."),
+            ],
+        );
     }
 
     #[test]
