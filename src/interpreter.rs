@@ -20,6 +20,7 @@ impl Interpreter {
         match *expr {
             Expr::Literal(value) => Ok(value),
             Expr::Binary(left, op, right) => self.binary(left, op, right),
+            Expr::Unary(op, right) => self.unary(op, right),
         }
     }
 
@@ -33,6 +34,17 @@ impl Interpreter {
             },
             TokenValue::Minus => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l - r)),
+            },
+            _ => Err(Error::from_token(&op, "Unknown operation.")),
+        }
+    }
+
+    fn unary(&self, op: Token, right: Box<Expr>) -> Result<Value, Error> {
+        let right_val = self.evaluate(right)?;
+
+        match op.val {
+            TokenValue::Minus => match right_val {
+                Value::Number(r) => Ok(Value::Number(-r)),
             },
             _ => Err(Error::from_token(&op, "Unknown operation.")),
         }

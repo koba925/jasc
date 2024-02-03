@@ -8,5 +8,6 @@ pub enum Value {
 #[derive(Debug, PartialEq)]
 pub enum Expr {
     Binary(Box<Expr>, Token, Box<Expr>),
+    Unary(Token, Box<Expr>),
     Literal(Value),
 }
