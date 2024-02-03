@@ -28,12 +28,12 @@ mod scanner {
 
     #[test]
     fn unexpected_character() {
-        run::err1("@", 1, " at '@'", "Unexpected character ('@').");
+        run::err1("@", 1, "@", "Unexpected character.");
     }
 
     #[test]
     fn unexpected_character_at_line_2() {
-        run::err1("\n@", 2, " at '@'", "Unexpected character ('@').");
+        run::err1("\n@", 2, "@", "Unexpected character.");
     }
 }
 
@@ -62,19 +62,19 @@ mod expression {
         run::err(
             "12+;",
             vec![
-                Error::new(1, " at end", "Number expected."),
-                Error::new(1, " at end", "Semicolon expected."),
+                Error::new(1, "end", "Number expected."),
+                Error::new(1, "end", "Semicolon expected."),
             ],
         );
     }
 
     #[test]
     fn number_no_semicolon() {
-        run::err1("123", 1, " at end", "Semicolon expected.");
+        run::err1("123", 1, "end", "Semicolon expected.");
     }
 
     #[test]
     fn addition_no_semicolon() {
-        run::err1("12+34", 1, " at end", "Semicolon expected.");
+        run::err1("12+34", 1, "end", "Semicolon expected.");
     }
 }

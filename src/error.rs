@@ -18,12 +18,19 @@ impl Error {
 
     pub fn from_token(token: &Token, msg: impl Into<String>) -> Error {
         match token.val {
-            TokenValue::EOF => Self::new(token.line, " at end", msg),
-            _ => Self::new(token.line, format!(" at '{}'", token.lexeme), msg),
+            TokenValue::EOF => Self::new(token.line, "end", msg),
+            _ => Self::new(token.line, token.lexeme.clone(), msg),
         }
     }
 
     pub fn report(&self) {
-        eprintln!("[line {}] Error{}: {}", self.line, self.location, self.msg)
+        if self.location == "" {
+            eprintln!("[line {}] Error: {}", self.line, self.msg)
+        } else {
+            eprintln!(
+                "[line {}] Error at '{}': {}",
+                self.line, self.location, self.msg
+            )
+        }
     }
 }
