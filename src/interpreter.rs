@@ -1,35 +1,40 @@
 use crate::ast::{Expr, Value};
 use crate::error::Error;
-use crate::token::TokenValue;
+use crate::token::{Token, TokenValue};
 
-pub struct Interpreter {
-    expr: Expr,
-}
+pub struct Interpreter {}
 
 impl Interpreter {
-    pub fn new(expr: Expr) -> Interpreter {
-        Interpreter { expr }
+    pub fn new() -> Interpreter {
+        Interpreter {}
     }
 
-    pub fn interpret(self) -> Result<Value, Vec<Error>> {
-        match self.expr {
+    pub fn interpret(&self, expr: Box<Expr>) -> Result<Value, Vec<Error>> {
+        match self.evaluate(expr) {
+            Ok(val) => Ok(val),
+            Err(e) => Err(vec![e]),
+        }
+    }
+
+    fn evaluate(&self, expr: Box<Expr>) -> Result<Value, Error> {
+        match *expr {
             Expr::Literal(value) => Ok(value),
-            // TODO::&とか*とかrefとか見直す
-            Expr::Binary(left, op, right) => match op.val {
-                TokenValue::Plus => match (*left, *right) {
-                    (Expr::Literal(l), Expr::Literal(r)) => match (l, r) {
-                        (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l + r)),
-                    },
-                    _ => Err(vec![Error::from_token(&op, "Operands must be numbers.")]),
-                },
-                TokenValue::Minus => match (*left, *right) {
-                    (Expr::Literal(l), Expr::Literal(r)) => match (l, r) {
-                        (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l - r)),
-                    },
-                    _ => Err(vec![Error::from_token(&op, "Operands must be numbers.")]),
-                },
-                _ => Err(vec![Error::from_token(&op, "Unknown operation.")]),
+            Expr::Binary(left, op, right) => self.binary(left, op, right),
+        }
+    }
+
+    fn binary(&self, left: Box<Expr>, op: Token, right: Box<Expr>) -> Result<Value, Error> {
+        let left_val = self.evaluate(left)?;
+        let right_val = self.evaluate(right)?;
+
+        match op.val {
+            TokenValue::Plus => match (left_val, right_val) {
+                (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l + r)),
             },
+            TokenValue::Minus => match (left_val, right_val) {
+                (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l - r)),
+            },
+            _ => Err(Error::from_token(&op, "Unknown operation.")),
         }
     }
 }

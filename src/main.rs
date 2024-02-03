@@ -1,4 +1,3 @@
-// TODO:連続する足し算・引き算に対応する
 // TODO:matchesを作る → 必要か？
 
 use std::io;

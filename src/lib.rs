@@ -15,5 +15,5 @@ pub fn run(src: impl Into<String>) -> Result<Value, Vec<Error>> {
     Scanner::new(src.into())
         .scan()
         .and_then(|tokens| Parser::new(tokens).parse())
-        .and_then(|expr| Interpreter::new(expr).interpret())
+        .and_then(|expr| Interpreter::new().interpret(Box::new(expr)))
 }
