@@ -38,11 +38,26 @@ impl Parser {
     }
 
     fn term(&mut self) -> Result<Expr> {
-        let mut left = self.unary()?;
+        let mut left = self.factor()?;
 
         loop {
             match self.peek().val {
                 TokenValue::Plus | TokenValue::Minus => {
+                    let op = self.advance().clone();
+                    let right = self.factor()?;
+                    left = Expr::Binary(Box::new(left), op, Box::new(right))
+                }
+                _ => return Ok(left),
+            }
+        }
+    }
+
+    fn factor(&mut self) -> Result<Expr> {
+        let mut left = self.unary()?;
+
+        loop {
+            match self.peek().val {
+                TokenValue::Star | TokenValue::Slash => {
                     let op = self.advance().clone();
                     let right = self.unary()?;
                     left = Expr::Binary(Box::new(left), op, Box::new(right))

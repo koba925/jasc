@@ -2,6 +2,8 @@
 pub enum TokenValue {
     Plus,
     Minus,
+    Star,
+    Slash,
     Semicolon,
     Number(f64),
     EOF,

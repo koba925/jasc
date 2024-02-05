@@ -14,6 +14,16 @@ fn add_12_34_56() {
 }
 
 #[test]
+fn add_unary_minus() {
+    run::ok("34+-12;", Value::Number(22.0))
+}
+
+#[test]
+fn add_factors() {
+    run::ok("1*-2*3+4*5/2;", Value::Number(4.0))
+}
+
+#[test]
 fn sub_34_12() {
     run::ok("34-12;", Value::Number(22.0))
 }

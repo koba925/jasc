@@ -9,11 +9,6 @@ fn unary_minus() {
 }
 
 #[test]
-fn add_unary_minus() {
-    run::ok("34+-12;", Value::Number(22.0))
-}
-
-#[test]
 fn unary_minus_missing_right() {
     run::err(
         "-;",

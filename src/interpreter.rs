@@ -35,6 +35,12 @@ impl Interpreter {
             TokenValue::Minus => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l - r)),
             },
+            TokenValue::Star => match (left_val, right_val) {
+                (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l * r)),
+            },
+            TokenValue::Slash => match (left_val, right_val) {
+                (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l / r)),
+            },
             _ => Err(Error::from_token(&op, "Unknown operation.")),
         }
     }
