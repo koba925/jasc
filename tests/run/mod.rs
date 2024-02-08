@@ -23,3 +23,12 @@ pub fn err(src: &str, vexpected: Vec<Error>) {
 pub fn err1(src: &str, line: usize, location: &str, msg: &str) {
     err(src, vec![Error::new(line, location, msg)])
 }
+
+#[allow(dead_code)]
+pub fn parse(src: &str, expected: &str) {
+    let result = jasc::parse(src);
+    match result {
+        Ok(expr) => assert_eq!(format!("{}", expr), expected),
+        _ => panic!("Failed - result: {:?}", result),
+    }
+}
