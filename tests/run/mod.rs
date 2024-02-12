@@ -1,3 +1,4 @@
+use jasc::ast;
 use jasc::ast::Value;
 use jasc::error::Error;
 
@@ -28,7 +29,7 @@ pub fn err1(src: &str, line: usize, location: &str, msg: &str) {
 pub fn parse(src: &str, expected: &str) {
     let result = jasc::parse(src);
     match result {
-        Ok(expr) => assert_eq!(format!("{}", expr), expected),
+        Ok(stmts) => assert_eq!(ast::stringify_statements(&stmts), expected),
         _ => panic!("Failed - result: {:?}", result),
     }
 }

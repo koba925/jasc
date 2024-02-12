@@ -1,4 +1,4 @@
-// TODO: 文を追加する（expression statement)
+// TODO: Print statementを追加する
 
 use std::io;
 

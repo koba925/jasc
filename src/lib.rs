@@ -5,7 +5,7 @@ mod parser;
 mod scanner;
 mod token;
 
-use ast::{Expr, Value};
+use ast::{Stmt, Value};
 use error::Error;
 use interpreter::Interpreter;
 use parser::Parser;
@@ -15,10 +15,10 @@ pub fn run(src: impl Into<String>) -> Result<Value, Vec<Error>> {
     Scanner::new(src.into())
         .scan()
         .and_then(|tokens| Parser::new(tokens).parse())
-        .and_then(|expr| Interpreter::new().interpret(Box::new(expr)))
+        .and_then(|stmts| Interpreter::new().interpret(stmts))
 }
 
-pub fn parse(src: impl Into<String>) -> Result<Expr, Vec<Error>> {
+pub fn parse(src: impl Into<String>) -> Result<Vec<Stmt>, Vec<Error>> {
     Scanner::new(src.into())
         .scan()
         .and_then(|tokens| Parser::new(tokens).parse())

@@ -1,4 +1,4 @@
-use crate::ast::{Expr, Value};
+use crate::ast::{Expr, Stmt, Value};
 use crate::error::Error;
 use crate::token::{Token, TokenValue};
 
@@ -9,10 +9,27 @@ impl Interpreter {
         Interpreter {}
     }
 
-    pub fn interpret(&self, expr: Box<Expr>) -> Result<Value, Vec<Error>> {
-        match self.evaluate(expr) {
-            Ok(val) => Ok(val),
-            Err(e) => Err(vec![e]),
+    pub fn interpret(&self, statements: Vec<Stmt>) -> Result<Value, Vec<Error>> {
+        let mut errors = vec![];
+        let mut value = Value::Number(0.0);
+
+        for statement in statements {
+            match self.execute(statement) {
+                Ok(v) => value = v,
+                Err(e) => errors.push(e),
+            }
+        }
+
+        if errors.is_empty() {
+            Ok(value)
+        } else {
+            Err(errors)
+        }
+    }
+
+    fn execute(&self, stmt: Stmt) -> Result<Value, Error> {
+        match stmt {
+            Stmt::Expression(expr) => self.evaluate(expr),
         }
     }
 

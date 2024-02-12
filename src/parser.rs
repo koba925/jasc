@@ -1,6 +1,6 @@
 // TODO:matchesを作る → 必要か？
 
-use crate::ast::{Expr, Value};
+use crate::ast::{Expr, Stmt, Value};
 use crate::error::Error;
 use crate::token::{Token, TokenValue};
 
@@ -16,23 +16,37 @@ impl Parser {
         Parser { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Result<Expr, Vec<Error>> {
-        let mut expr = Expr::Literal(Value::Number(0.0));
+    pub fn parse(&mut self) -> Result<Vec<Stmt>, Vec<Error>> {
+        let mut statements = vec![];
         let mut errors = vec![];
 
-        match self.expression() {
-            Ok(value) => expr = value,
-            Err(error) => errors.push(error),
+        while !self.is_at_end() {
+            match self.statement() {
+                Ok(stmt) => statements.push(stmt),
+                Err(error) => errors.push(error),
+            }
         }
-        match self.consume(TokenValue::Semicolon, "Semicolon expected.") {
-            Err(error) => errors.push(error),
-            _ => (),
-        };
         if errors.is_empty() {
-            Ok(expr)
+            Ok(statements)
         } else {
             Err(errors)
         }
+    }
+
+    fn statement(&mut self) -> Result<Stmt> {
+        match self.expression_statement() {
+            Ok(stmt) => Ok(stmt),
+            Err(e) => {
+                self.synchronize();
+                Err(e)
+            }
+        }
+    }
+
+    fn expression_statement(&mut self) -> Result<Stmt> {
+        let expr = self.expression()?;
+        self.consume(TokenValue::Semicolon, "Semicolon expected.")?;
+        Ok(Stmt::Expression(Box::new(expr)))
     }
 
     fn expression(&mut self) -> Result<Expr> {
@@ -88,7 +102,20 @@ impl Parser {
                 self.consume(TokenValue::RightParen, "Right paren expected")?;
                 Ok(Expr::Grouping(Box::new(expr)))
             }
-            _ => Err(Error::from_token(self.peek(), "Number expected.")),
+            t => Err(Error::from_token(
+                self.previous(),
+                format!("Exrpression expected, found `{}`", t),
+            )),
+        }
+    }
+
+    fn synchronize(&mut self) {
+        // self.advance();
+        while !self.is_at_end() {
+            if self.previous().val == TokenValue::Semicolon {
+                return;
+            }
+            self.advance();
         }
     }
 

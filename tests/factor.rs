@@ -1,7 +1,6 @@
 mod run;
 
 use jasc::ast::Value;
-use jasc::error::Error;
 
 #[test]
 fn mul_12_3() {
@@ -40,22 +39,5 @@ fn mul_no_semicolon_after_3() {
 
 #[test]
 fn mul_missing_right() {
-    run::err(
-        "12*;",
-        vec![
-            Error::new(1, "end", "Number expected."),
-            Error::new(1, "end", "Semicolon expected."),
-        ],
-    );
-}
-
-#[test]
-fn mul_missing_right_after_2() {
-    run::err(
-        "12*34*;",
-        vec![
-            Error::new(1, "end", "Number expected."),
-            Error::new(1, "end", "Semicolon expected."),
-        ],
-    );
+    run::err1("12*;", 1, ";", "Exrpression expected, found `;`");
 }

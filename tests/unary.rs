@@ -1,7 +1,6 @@
 mod run;
 
 use jasc::ast::Value;
-use jasc::error::Error;
 
 #[test]
 fn unary_minus() {
@@ -10,11 +9,5 @@ fn unary_minus() {
 
 #[test]
 fn unary_minus_missing_right() {
-    run::err(
-        "-;",
-        vec![
-            Error::new(1, "end", "Number expected."),
-            Error::new(1, "end", "Semicolon expected."),
-        ],
-    );
+    run::err1("-;", 1, ";", "Exrpression expected, found `;`");
 }
