@@ -1,5 +1,7 @@
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenValue {
+    LeftParen,
+    RightParen,
     Plus,
     Minus,
     Star,

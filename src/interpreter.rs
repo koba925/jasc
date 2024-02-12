@@ -18,8 +18,9 @@ impl Interpreter {
 
     fn evaluate(&self, expr: Box<Expr>) -> Result<Value, Error> {
         match *expr {
-            Expr::Literal(value) => Ok(value),
             Expr::Binary(left, op, right) => self.binary(left, op, right),
+            Expr::Grouping(expr) => self.evaluate(expr),
+            Expr::Literal(value) => Ok(value),
             Expr::Unary(op, right) => self.unary(op, right),
         }
     }

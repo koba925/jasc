@@ -46,10 +46,12 @@ impl Scanner {
         self.start = self.current;
 
         match self.advance() {
-            '+' => Ok(self.make_token(TokenValue::Plus)),
-            '-' => Ok(self.make_token(TokenValue::Minus)),
+            '(' => Ok(self.make_token(TokenValue::LeftParen)),
+            ')' => Ok(self.make_token(TokenValue::RightParen)),
             '*' => Ok(self.make_token(TokenValue::Star)),
             '/' => Ok(self.make_token(TokenValue::Slash)),
+            '+' => Ok(self.make_token(TokenValue::Plus)),
+            '-' => Ok(self.make_token(TokenValue::Minus)),
             ';' => Ok(self.make_token(TokenValue::Semicolon)),
             c if c.is_ascii_digit() => Ok(self.number()),
             c => Err(Error::new(self.line, c, "Unexpected character.")),

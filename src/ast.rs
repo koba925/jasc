@@ -10,8 +10,9 @@ pub enum Value {
 #[derive(Debug, PartialEq)]
 pub enum Expr {
     Binary(Box<Expr>, Token, Box<Expr>),
-    Unary(Token, Box<Expr>),
+    Grouping(Box<Expr>),
     Literal(Value),
+    Unary(Token, Box<Expr>),
 }
 
 impl std::fmt::Display for Expr {
@@ -20,10 +21,11 @@ impl std::fmt::Display for Expr {
             Expr::Binary(left, op, right) => {
                 f.write_fmt(format_args!("({} {} {})", op, left, right))
             }
-            Expr::Unary(op, right) => f.write_fmt(format_args!("({} {})", op, right)),
+            Expr::Grouping(expr) => f.write_fmt(format_args!("(group {})", expr)),
             Expr::Literal(val) => match val {
                 Value::Number(n) => n.fmt(f),
             },
+            Expr::Unary(op, right) => f.write_fmt(format_args!("({} {})", op, right)),
         }
     }
 }

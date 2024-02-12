@@ -1,4 +1,4 @@
-// TODO:カッコを実装する
+// TODO: 文を追加する（expression statement)
 
 use std::io;
 
