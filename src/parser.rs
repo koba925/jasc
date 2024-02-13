@@ -34,13 +34,23 @@ impl Parser {
     }
 
     fn statement(&mut self) -> Result<Stmt> {
-        match self.expression_statement() {
-            Ok(stmt) => Ok(stmt),
-            Err(e) => {
-                self.synchronize();
-                Err(e)
-            }
+        match self.peek().val {
+            TokenValue::Print => self.print_statement(),
+            _ => match self.expression_statement() {
+                Ok(stmt) => Ok(stmt),
+                Err(e) => {
+                    self.synchronize();
+                    Err(e)
+                }
+            },
         }
+    }
+
+    fn print_statement(&mut self) -> Result<Stmt> {
+        self.advance();
+        let expr = self.expression()?;
+        self.consume(TokenValue::Semicolon, "Semicolon expected.")?;
+        Ok(Stmt::Print(Box::new(expr)))
     }
 
     fn expression_statement(&mut self) -> Result<Stmt> {

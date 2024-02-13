@@ -30,7 +30,14 @@ impl Interpreter {
     fn execute(&self, stmt: Stmt) -> Result<Value, Error> {
         match stmt {
             Stmt::Expression(expr) => self.evaluate(expr),
+            Stmt::Print(expr) => self.print(expr),
         }
+    }
+
+    fn print(&self, expr: Box<Expr>) -> Result<Value, Error> {
+        let result = self.evaluate(expr)?;
+        println!("{}", result);
+        Ok(Value::Null)
     }
 
     fn evaluate(&self, expr: Box<Expr>) -> Result<Value, Error> {
@@ -49,15 +56,19 @@ impl Interpreter {
         match op.val {
             TokenValue::Plus => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l + r)),
+                _ => Err(Error::from_token(&op, "Operands must be two numbers.")),
             },
             TokenValue::Minus => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l - r)),
+                _ => Err(Error::from_token(&op, "Operands must be two numbers.")),
             },
             TokenValue::Star => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l * r)),
+                _ => Err(Error::from_token(&op, "Operands must be two numbers.")),
             },
             TokenValue::Slash => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l / r)),
+                _ => Err(Error::from_token(&op, "Operands must be two numbers.")),
             },
             _ => Err(Error::from_token(&op, "Unknown operation.")),
         }
@@ -69,6 +80,7 @@ impl Interpreter {
         match op.val {
             TokenValue::Minus => match right_val {
                 Value::Number(r) => Ok(Value::Number(-r)),
+                _ => Err(Error::from_token(&op, "Operand must be a number.")),
             },
             _ => Err(Error::from_token(&op, "Unknown operation.")),
         }

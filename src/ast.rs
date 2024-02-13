@@ -5,6 +5,16 @@ use crate::token::Token;
 #[derive(Debug, PartialEq)]
 pub enum Value {
     Number(f64),
+    Null,
+}
+
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Value::Number(n) => write!(f, "{}", n),
+            Value::Null => write!(f, "null"),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -22,9 +32,7 @@ impl std::fmt::Display for Expr {
                 write!(f, "({} {} {})", op.lexeme, left, right)
             }
             Expr::Grouping(expr) => write!(f, "(group {})", expr),
-            Expr::Literal(val) => match val {
-                Value::Number(n) => n.fmt(f),
-            },
+            Expr::Literal(val) => write!(f, "{}", val),
             Expr::Unary(op, right) => write!(f, "({} {})", op.lexeme, right),
         }
     }
@@ -33,12 +41,14 @@ impl std::fmt::Display for Expr {
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
     Expression(Box<Expr>),
+    Print(Box<Expr>),
 }
 
 impl std::fmt::Display for Stmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Stmt::Expression(expr) => write!(f, "(expression {})", expr),
+            Stmt::Print(expr) => write!(f, "(print {})", expr),
         }
     }
 }
