@@ -95,8 +95,8 @@ impl Parser {
     }
 
     fn primary(&mut self) -> Result<Expr> {
-        match self.advance().val {
-            TokenValue::Number(value) => Ok(Expr::Literal(Value::Number(value))),
+        match self.advance().val.clone() {
+            TokenValue::Number(n) => Ok(Expr::Literal(Value::Number(n))),
             TokenValue::LeftParen => {
                 let expr = self.expression()?;
                 self.consume(TokenValue::RightParen, "Right paren expected")?;

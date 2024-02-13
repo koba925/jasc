@@ -54,6 +54,7 @@ impl Scanner {
             '-' => Ok(self.make_token(TokenValue::Minus)),
             ';' => Ok(self.make_token(TokenValue::Semicolon)),
             c if c.is_ascii_digit() => Ok(self.number()),
+            c if c.is_ascii_alphabetic() => Ok(self.identifier()),
             c => Err(Error::new(self.line, c, "Unexpected character.")),
         }
     }
@@ -72,6 +73,17 @@ impl Scanner {
             self.advance();
         }
         self.make_token(TokenValue::Number(self.lexeme().parse().unwrap()))
+    }
+
+    fn identifier(&mut self) -> Token {
+        while !self.is_at_end() && self.peek().is_ascii_alphanumeric() {
+            self.advance();
+        }
+        let lexeme = self.lexeme();
+        match lexeme.as_str() {
+            "print" => self.make_token(TokenValue::Print),
+            _ => self.make_token(TokenValue::Identifier(lexeme)),
+        }
     }
 
     fn make_token(&self, val: TokenValue) -> Token {
@@ -94,5 +106,39 @@ impl Scanner {
 
     fn peek(&self) -> char {
         self.src[self.current]
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Scanner;
+    use crate::token::{Token, TokenValue};
+
+    #[test]
+    fn test_scanner() {
+        let src = "print (1 + 2) * 3 \n / 4 - a;";
+        let result = Scanner::new(src.to_string()).scan();
+        let expected = vec![
+            Token::new(TokenValue::Print, "print".to_string(), 1),
+            Token::new(TokenValue::LeftParen, "(".to_string(), 1),
+            Token::new(TokenValue::Number(1.0), "1".to_string(), 1),
+            Token::new(TokenValue::Plus, "+".to_string(), 1),
+            Token::new(TokenValue::Number(2.0), "2".to_string(), 1),
+            Token::new(TokenValue::RightParen, ")".to_string(), 1),
+            Token::new(TokenValue::Star, "*".to_string(), 1),
+            Token::new(TokenValue::Number(3.0), "3".to_string(), 1),
+            Token::new(TokenValue::Slash, "/".to_string(), 2),
+            Token::new(TokenValue::Number(4.0), "4".to_string(), 2),
+            Token::new(TokenValue::Minus, "-".to_string(), 2),
+            Token::new(TokenValue::Identifier("a".to_string()), "a".to_string(), 2),
+        ];
+        match result {
+            Ok(tokens) => {
+                for (token, exp) in tokens.iter().zip(&expected) {
+                    assert_eq!(token, exp);
+                }
+            }
+            Err(_) => panic!("Failed - result: {:?}", result),
+        }
     }
 }

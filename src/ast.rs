@@ -19,13 +19,13 @@ impl std::fmt::Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Expr::Binary(left, op, right) => {
-                f.write_fmt(format_args!("({} {} {})", op, left, right))
+                write!(f, "({} {} {})", op.lexeme, left, right)
             }
-            Expr::Grouping(expr) => f.write_fmt(format_args!("(group {})", expr)),
+            Expr::Grouping(expr) => write!(f, "(group {})", expr),
             Expr::Literal(val) => match val {
                 Value::Number(n) => n.fmt(f),
             },
-            Expr::Unary(op, right) => f.write_fmt(format_args!("({} {})", op, right)),
+            Expr::Unary(op, right) => write!(f, "({} {})", op.lexeme, right),
         }
     }
 }
@@ -38,10 +38,11 @@ pub enum Stmt {
 impl std::fmt::Display for Stmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Stmt::Expression(expr) => f.write_fmt(format_args!("(expression {})", expr)),
+            Stmt::Expression(expr) => write!(f, "(expression {})", expr),
         }
     }
 }
+
 pub fn stringify_statements(statements: &Vec<Stmt>) -> String {
     let mut result = String::new();
 

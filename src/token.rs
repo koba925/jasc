@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TokenValue {
     LeftParen,
     RightParen,
@@ -7,22 +7,26 @@ pub enum TokenValue {
     Star,
     Slash,
     Semicolon,
+    Identifier(String),
     Number(f64),
+    Print,
     EOF,
 }
 
 impl std::fmt::Display for TokenValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::LeftParen => f.write_str("("),
-            Self::RightParen => f.write_str(")"),
-            Self::Plus => f.write_str("+"),
-            Self::Minus => f.write_str("-"),
-            Self::Star => f.write_str("*"),
-            Self::Slash => f.write_str("/"),
-            Self::Semicolon => f.write_str(";"),
-            Self::Number(n) => n.fmt(f),
-            Self::EOF => f.write_str("end"),
+            TokenValue::LeftParen => write!(f, "("),
+            TokenValue::RightParen => write!(f, ")"),
+            TokenValue::Plus => write!(f, "+"),
+            TokenValue::Minus => write!(f, "-"),
+            TokenValue::Star => write!(f, "*"),
+            TokenValue::Slash => write!(f, "/"),
+            TokenValue::Semicolon => write!(f, ";"),
+            TokenValue::Identifier(name) => write!(f, "(id {})", name),
+            TokenValue::Number(n) => write!(f, "{}", n),
+            TokenValue::Print => write!(f, "print"),
+            TokenValue::EOF => write!(f, "end"),
         }
     }
 }
@@ -42,6 +46,6 @@ impl Token {
 
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.lexeme.fmt(f)
+        write!(f, "{:?} {} {:?}", self.val, self.lexeme, self.line)
     }
 }
