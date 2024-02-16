@@ -1,3 +1,5 @@
+// TODO: コメントの処理がダサいのでなんとかする
+
 use crate::error::Error;
 use crate::token::{Token, TokenValue};
 
@@ -26,6 +28,7 @@ impl Scanner {
         self.skip_whitespaces();
         while !self.is_at_end() {
             match self.scan_token() {
+                Ok(token) if token.val == TokenValue::Skip => (),
                 Ok(token) => tokens.push(token),
                 Err(error) => errors.push(error),
             }
@@ -49,7 +52,20 @@ impl Scanner {
             '(' => Ok(self.make_token(TokenValue::LeftParen)),
             ')' => Ok(self.make_token(TokenValue::RightParen)),
             '*' => Ok(self.make_token(TokenValue::Star)),
-            '/' => Ok(self.make_token(TokenValue::Slash)),
+            '/' => {
+                if self.peek() == '/' {
+                    self.advance();
+                    while !self.is_at_end() && self.peek() != '\n' {
+                        if self.peek() == '\n' {
+                            self.line += 1
+                        }
+                        self.advance();
+                    }
+                    Ok(self.make_token(TokenValue::Skip))
+                } else {
+                    Ok(self.make_token(TokenValue::Slash))
+                }
+            }
             '+' => Ok(self.make_token(TokenValue::Plus)),
             '-' => Ok(self.make_token(TokenValue::Minus)),
             ';' => Ok(self.make_token(TokenValue::Semicolon)),

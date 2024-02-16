@@ -1,5 +1,6 @@
 #[derive(Debug, PartialEq, Clone)]
 pub enum TokenValue {
+    Skip,
     LeftParen,
     RightParen,
     Plus,
@@ -16,6 +17,7 @@ pub enum TokenValue {
 impl std::fmt::Display for TokenValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            TokenValue::Skip => panic!("Invalid Token {:?}", TokenValue::Skip),
             TokenValue::LeftParen => write!(f, "("),
             TokenValue::RightParen => write!(f, ")"),
             TokenValue::Plus => write!(f, "+"),

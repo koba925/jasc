@@ -16,26 +16,25 @@ fi
 
 export RUST_BACKTRACE=1
 
-for group in *; do
-    cd $group
-    for test in *; do
-        cd $test
-        ../../../target/debug/jasc < code.js > result.out 2> result.tmp.err
-        grep -v '^thread .* panicked at' result.tmp.err | grep -v '^note: run with' > result.err
-        rm result.tmp.err
-        if ! diff -s expected.out result.out > /dev/null || ! diff -s expected.err result.err > /dev/null; then
-            echo === test $group/$test failed ===
-            if ! diff -s expected.out result.out > /dev/null; then
+for GROUP in *; do
+    for TEST in $GROUP/*.jsc; do
+        grep '^//out ' $TEST | sed 's%^//out %%' > expected%%.out
+        grep '^//err ' $TEST | sed 's%^//err %%'  > expected%%.err    
+        $PROJECTDIR/target/debug/jasc < $TEST > result%%.out 2> result.tmp%%.err
+        grep -v '^thread .* panicked at' result.tmp%%.err | grep -v '^note: run with' > result%%.err
+        rm result.tmp%%.err
+        if ! diff -s expected%%.out result%%.out > /dev/null || ! diff -s expected%%.err result%%.err > /dev/null; then
+            echo === test $TEST failed ===
+            if ! diff -s expected%%.out result%%.out > /dev/null; then
                 echo "== stdout expected <-> result =="
-                diff -y expected.out result.out
+                diff -y expected%%.out result%%.out
             fi
-            if ! diff -s expected.err result.err > /dev/null; then
+            if ! diff -s expected%%.err result%%.err > /dev/null; then
                 echo "== stderr expected <-> result =="
-                diff -y expected.err result.err
+                diff -y expected%%.err result%%.err
             fi
         fi
-        cd ..
     done
-    cd ..
 done
 
+rm expected%%.out expected%%.err result%%.out result%%.err
