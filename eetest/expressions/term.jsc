@@ -1,0 +1,12 @@
+print 1 + 2;
+//out 3
+print 1 + -2 + -3;
+//out -4
+print 3 - 2;
+//out 1
+print 12 - 3 - 4;
+//out 5
+print 12 + 3 * 4;
+//out 24
+print 12 * 3 - 4;
+//out 32

@@ -1,0 +1,2 @@
+print @
+//err [line 1] Error at '@': Unexpected character.

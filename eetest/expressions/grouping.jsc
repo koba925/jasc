@@ -1,0 +1,14 @@
+print (12);
+//out 12
+print (12+3);
+//out 15
+print (12+3)*4;
+//out 60
+print (12*3)+4;
+//out 40
+print (12*(3 + 4));
+//out 84
+print -(12 + 34);
+//out -46
+print 123-(45+67);
+//out 11

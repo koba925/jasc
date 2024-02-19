@@ -1,2 +1,2 @@
-//err [line 2] Error at 'end': Semicolon expected.
 print 123
+//err [line 2] Error at 'end': Semicolon expected.

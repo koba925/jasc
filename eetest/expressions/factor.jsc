@@ -1,0 +1,10 @@
+print 12 * -3;
+//out -36
+print 12 * -3 * 4;
+//out -144
+print -12 / 4;
+//out -3
+print -24 / 4 / 3;
+//out -2
+print 24 / 4 * 2;
+//out 12
