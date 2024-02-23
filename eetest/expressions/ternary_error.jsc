@@ -1,6 +1,5 @@
 print ? 1 : 2;
 //err [line 1] Error at '?': Expression expected, found `?`
-//err [line 1] Error at ':': Semicolon expected.
 print : 2;
 //err [line 2] Error at ':': Expression expected, found `:`
 print 1 ? 1 :;

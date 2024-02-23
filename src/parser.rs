@@ -35,15 +35,16 @@ impl Parser {
     }
 
     fn statement(&mut self) -> Result<Stmt> {
-        match self.peek().val {
+        let result = match self.peek().val {
             TokenValue::Print => self.print_statement(),
-            _ => match self.expression_statement() {
-                Ok(stmt) => Ok(stmt),
-                Err(e) => {
-                    self.synchronize();
-                    Err(e)
-                }
-            },
+            _ => self.expression_statement(),
+        };
+        match result {
+            Ok(stmt) => Ok(stmt),
+            Err(e) => {
+                self.synchronize();
+                Err(e)
+            }
         }
     }
 
