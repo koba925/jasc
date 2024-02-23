@@ -30,3 +30,13 @@ fn grouping() {
         "(expression (/ (group (- (* (group (+ 12 (- 34))) 56) 78)) 90))\n",
     )
 }
+
+#[test]
+fn ternary() {
+    run::parse("1 ? 2 ? 3 : 4 : 5;", "(expression (? 1 (? 2 3 4) 5))\n");
+    run::parse("1 ? 2 : 3 ? 4 : 5;", "(expression (? 1 2 (? 3 4 5)))\n");
+    run::parse(
+        "1 ? 2 ? 3 : 4 : 5 ? 6 : 7;",
+        "(expression (? 1 (? 2 3 4) (? 5 6 7)))\n",
+    );
+}

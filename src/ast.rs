@@ -1,4 +1,5 @@
 // TODO: ValueをTokenの定義でも使う
+// TODO: Binaryの項目の順番を変える
 
 use crate::token::Token;
 
@@ -22,6 +23,7 @@ pub enum Expr {
     Binary(Box<Expr>, Token, Box<Expr>),
     Grouping(Box<Expr>),
     Literal(Value),
+    Ternary(Token, Box<Expr>, Box<Expr>, Box<Expr>),
     Unary(Token, Box<Expr>),
 }
 
@@ -33,6 +35,9 @@ impl std::fmt::Display for Expr {
             }
             Expr::Grouping(expr) => write!(f, "(group {})", expr),
             Expr::Literal(val) => write!(f, "{}", val),
+            Expr::Ternary(op, first, second, third) => {
+                write!(f, "({} {} {} {})", op.lexeme, first, second, third)
+            }
             Expr::Unary(op, right) => write!(f, "({} {})", op.lexeme, right),
         }
     }

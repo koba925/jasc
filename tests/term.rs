@@ -45,7 +45,7 @@ fn addition_no_semicolon_after_3() {
 
 #[test]
 fn add_missing_right() {
-    run::err1("12+;", 1, ";", "Exrpression expected, found `;`");
+    run::err1("12+;", 1, ";", "Expression expected, found `;`");
 }
 
 #[test]
@@ -54,8 +54,8 @@ fn add_missing_right_2_lines() {
         "12+34+;
         45+67+;",
         vec![
-            Error::new(1, ";", "Exrpression expected, found `;`"),
-            Error::new(2, ";", "Exrpression expected, found `;`"),
+            Error::new(1, ";", "Expression expected, found `;`"),
+            Error::new(2, ";", "Expression expected, found `;`"),
         ],
     );
 }

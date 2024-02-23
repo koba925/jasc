@@ -39,5 +39,5 @@ fn mul_no_semicolon_after_3() {
 
 #[test]
 fn mul_missing_right() {
-    run::err1("12*;", 1, ";", "Exrpression expected, found `;`");
+    run::err1("12*;", 1, ";", "Expression expected, found `;`");
 }

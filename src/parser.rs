@@ -16,6 +16,7 @@ impl Parser {
         Parser { tokens, current: 0 }
     }
 
+    // TODO: エラーがでたらキリのいいところまでスキップする
     pub fn parse(&mut self) -> Result<Vec<Stmt>, Vec<Error>> {
         let mut statements = vec![];
         let mut errors = vec![];
@@ -60,7 +61,27 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expr> {
-        self.term()
+        self.ternary()
+    }
+
+    fn ternary(&mut self) -> Result<Expr> {
+        let first = self.term()?;
+
+        match self.peek().val {
+            TokenValue::Question => {
+                let op = self.advance().clone();
+                let second = self.ternary()?;
+                self.consume(TokenValue::Colon, "Colon expected.")?;
+                let third = self.ternary()?;
+                Ok(Expr::Ternary(
+                    op,
+                    Box::new(first),
+                    Box::new(second),
+                    Box::new(third),
+                ))
+            }
+            _ => Ok(first),
+        }
     }
 
     fn term(&mut self) -> Result<Expr> {
@@ -104,6 +125,7 @@ impl Parser {
         }
     }
 
+    // TODO: cloneしないようにする
     fn primary(&mut self) -> Result<Expr> {
         match self.advance().val.clone() {
             TokenValue::Number(n) => Ok(Expr::Literal(Value::Number(n))),
@@ -114,7 +136,7 @@ impl Parser {
             }
             t => Err(Error::from_token(
                 self.previous(),
-                format!("Exrpression expected, found `{}`", t),
+                format!("Expression expected, found `{}`", t),
             )),
         }
     }

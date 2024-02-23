@@ -45,6 +45,7 @@ impl Interpreter {
             Expr::Binary(left, op, right) => self.binary(left, op, right),
             Expr::Grouping(expr) => self.evaluate(expr),
             Expr::Literal(value) => Ok(value),
+            Expr::Ternary(op, first, second, third) => self.ternary(op, first, second, third),
             Expr::Unary(op, right) => self.unary(op, right),
         }
     }
@@ -83,6 +84,30 @@ impl Interpreter {
                 _ => Err(Error::from_token(&op, "Operand must be a number.")),
             },
             _ => Err(Error::from_token(&op, "Unknown operation.")),
+        }
+    }
+
+    fn ternary(
+        &self,
+        op: Token,
+        first: Box<Expr>,
+        second: Box<Expr>,
+        third: Box<Expr>,
+    ) -> Result<Value, Error> {
+        assert_eq!(op.val, TokenValue::Question);
+
+        let condition = self.evaluate(first)?;
+        if self.is_truthy(condition) {
+            self.evaluate(second)
+        } else {
+            self.evaluate(third)
+        }
+    }
+
+    fn is_truthy(&self, val: Value) -> bool {
+        match val {
+            Value::Number(n) => n != 0.0,
+            Value::Null => false,
         }
     }
 }

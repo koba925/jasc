@@ -9,5 +9,5 @@ fn unary_minus() {
 
 #[test]
 fn unary_minus_missing_right() {
-    run::err1("-;", 1, ";", "Exrpression expected, found `;`");
+    run::err1("-;", 1, ";", "Expression expected, found `;`");
 }

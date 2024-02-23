@@ -68,6 +68,8 @@ impl Scanner {
             }
             '+' => Ok(self.make_token(TokenValue::Plus)),
             '-' => Ok(self.make_token(TokenValue::Minus)),
+            '?' => Ok(self.make_token(TokenValue::Question)),
+            ':' => Ok(self.make_token(TokenValue::Colon)),
             ';' => Ok(self.make_token(TokenValue::Semicolon)),
             c if c.is_ascii_digit() => Ok(self.number()),
             c if c.is_ascii_alphabetic() => Ok(self.identifier()),
