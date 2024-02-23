@@ -121,22 +121,23 @@ impl Parser {
                 let right = self.primary()?;
                 Ok(Expr::Unary(op, Box::new(right)))
             }
-            _ => return self.primary(),
+            _ => self.primary(),
         }
     }
 
-    // TODO: cloneしないようにする
     fn primary(&mut self) -> Result<Expr> {
-        match self.advance().val.clone() {
+        let token = self.advance();
+
+        match token.val {
             TokenValue::Number(n) => Ok(Expr::Literal(Value::Number(n))),
             TokenValue::LeftParen => {
                 let expr = self.expression()?;
                 self.consume(TokenValue::RightParen, "Right paren expected")?;
                 Ok(Expr::Grouping(Box::new(expr)))
             }
-            t => Err(Error::from_token(
-                self.previous(),
-                format!("Expression expected, found `{}`", t),
+            _ => Err(Error::from_token(
+                token,
+                format!("Expression expected, found `{}`", token.val),
             )),
         }
     }
