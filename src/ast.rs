@@ -1,5 +1,4 @@
 // TODO: ValueをTokenの定義でも使う
-// TODO: Binaryの項目の順番を変える
 
 use crate::token::Token;
 
@@ -20,7 +19,7 @@ impl std::fmt::Display for Value {
 
 #[derive(Debug, PartialEq)]
 pub enum Expr {
-    Binary(Box<Expr>, Token, Box<Expr>),
+    Binary(Token, Box<Expr>, Box<Expr>),
     Grouping(Box<Expr>),
     Literal(Value),
     Ternary(Token, Box<Expr>, Box<Expr>, Box<Expr>),
@@ -30,7 +29,7 @@ pub enum Expr {
 impl std::fmt::Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Expr::Binary(left, op, right) => {
+            Expr::Binary(op, left, right) => {
                 write!(f, "({} {} {})", op.lexeme, left, right)
             }
             Expr::Grouping(expr) => write!(f, "(group {})", expr),

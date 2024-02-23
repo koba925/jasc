@@ -42,7 +42,7 @@ impl Interpreter {
 
     fn evaluate(&self, expr: Box<Expr>) -> Result<Value, Error> {
         match *expr {
-            Expr::Binary(left, op, right) => self.binary(left, op, right),
+            Expr::Binary(op, left, right) => self.binary(op, left, right),
             Expr::Grouping(expr) => self.evaluate(expr),
             Expr::Literal(value) => Ok(value),
             Expr::Ternary(op, first, second, third) => self.ternary(op, first, second, third),
@@ -50,7 +50,7 @@ impl Interpreter {
         }
     }
 
-    fn binary(&self, left: Box<Expr>, op: Token, right: Box<Expr>) -> Result<Value, Error> {
+    fn binary(&self, op: Token, left: Box<Expr>, right: Box<Expr>) -> Result<Value, Error> {
         let left_val = self.evaluate(left)?;
         let right_val = self.evaluate(right)?;
 

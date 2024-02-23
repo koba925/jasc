@@ -1,5 +1,3 @@
-// DOING: 3項演算子を追加する
-
 use jasc::ast::Value;
 use std::io;
 

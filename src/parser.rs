@@ -16,7 +16,6 @@ impl Parser {
         Parser { tokens, current: 0 }
     }
 
-    // TODO: エラーがでたらキリのいいところまでスキップする
     pub fn parse(&mut self) -> Result<Vec<Stmt>, Vec<Error>> {
         let mut statements = vec![];
         let mut errors = vec![];
@@ -93,7 +92,7 @@ impl Parser {
                 TokenValue::Plus | TokenValue::Minus => {
                     let op = self.advance().clone();
                     let right = self.factor()?;
-                    left = Expr::Binary(Box::new(left), op, Box::new(right))
+                    left = Expr::Binary(op, Box::new(left), Box::new(right))
                 }
                 _ => return Ok(left),
             }
@@ -108,7 +107,7 @@ impl Parser {
                 TokenValue::Star | TokenValue::Slash => {
                     let op = self.advance().clone();
                     let right = self.unary()?;
-                    left = Expr::Binary(Box::new(left), op, Box::new(right))
+                    left = Expr::Binary(op, Box::new(left), Box::new(right))
                 }
                 _ => return Ok(left),
             }
