@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-cargo build
+cargo build || exit 1
+cargo test --test '*' || exit 1
 
 if ! [ -d $PROJECTDIR/eetest ]; then
     echo "No eetest directory."
@@ -9,13 +10,9 @@ fi
 
 cd $PROJECTDIR/eetest
 
-if [ $# -ge 2 ] && [ $2 = "clean" ]; then
-    rm */*/result.*
-    exit 0
-fi
-
 export RUST_BACKTRACE=1
 
+ERRORS=0
 for GROUP in *; do
     for TEST in $GROUP/*.jsc; do
         grep '^//out ' $TEST | sed 's%^//out %%' > expected%%.out
@@ -24,17 +21,22 @@ for GROUP in *; do
         grep -v '^thread .* panicked at' result.tmp%%.err | grep -v '^note: run with' > result%%.err
         rm result.tmp%%.err
         if ! diff -s expected%%.out result%%.out > /dev/null || ! diff -s expected%%.err result%%.err > /dev/null; then
+            (( ERRORS++ ))
             echo === test $TEST failed ===
-            if ! diff -s expected%%.out result%%.out > /dev/null; then
+            if ! diff expected%%.out result%%.out > /dev/null; then
                 echo "== stdout expected <-> result =="
-                diff -y expected%%.out result%%.out
+                diff expected%%.out result%%.out
             fi
-            if ! diff -s expected%%.err result%%.err > /dev/null; then
+            if ! diff expected%%.err result%%.err > /dev/null; then
                 echo "== stderr expected <-> result =="
-                diff -y expected%%.err result%%.err
+                diff expected%%.err result%%.err
             fi
         fi
     done
 done
 
 rm expected%%.out expected%%.err result%%.out result%%.err
+
+echo
+echo $ERRORS errors found in E2E tests.
+
