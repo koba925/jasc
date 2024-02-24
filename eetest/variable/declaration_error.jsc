@@ -1,0 +1,6 @@
+let 1 = a;
+//err [line 1] Error at 'let': Variable expected.
+let b 1;
+//err [line 2] Error at '1': Initializer or semicolon expected.
+let d = 1
+//err [line 4] Error at 'end': Initializer or semicolon expected.

@@ -71,6 +71,7 @@ impl Scanner {
             '?' => Ok(self.make_token(TokenValue::Question)),
             ':' => Ok(self.make_token(TokenValue::Colon)),
             ';' => Ok(self.make_token(TokenValue::Semicolon)),
+            '=' => Ok(self.make_token(TokenValue::Equal)),
             c if c.is_ascii_digit() => Ok(self.number()),
             c if c.is_ascii_alphabetic() => Ok(self.identifier()),
             c => Err(Error::new(self.line, c, "Unexpected character.")),
@@ -99,8 +100,9 @@ impl Scanner {
         }
         let lexeme = self.lexeme();
         match lexeme.as_str() {
+            "let" => self.make_token(TokenValue::Let),
             "print" => self.make_token(TokenValue::Print),
-            _ => self.make_token(TokenValue::Identifier(lexeme)),
+            _ => self.make_token(TokenValue::Identifier),
         }
     }
 
@@ -148,7 +150,7 @@ mod test {
             Token::new(TokenValue::Slash, "/".to_string(), 2),
             Token::new(TokenValue::Number(4.0), "4".to_string(), 2),
             Token::new(TokenValue::Minus, "-".to_string(), 2),
-            Token::new(TokenValue::Identifier("a".to_string()), "a".to_string(), 2),
+            Token::new(TokenValue::Identifier, "a".to_string(), 2),
         ];
         match result {
             Ok(tokens) => {

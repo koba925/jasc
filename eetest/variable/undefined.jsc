@@ -1,0 +1,2 @@
+print a;
+//err [line 1] Error at 'a': Variable not defined.

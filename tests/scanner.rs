@@ -1,3 +1,5 @@
+// TODO:scanのテストを追加する
+
 use jasc::ast::Value;
 
 mod run;

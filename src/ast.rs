@@ -2,10 +2,11 @@
 
 use crate::token::Token;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Number(f64),
     Null,
+    Undefined,
 }
 
 impl std::fmt::Display for Value {
@@ -13,6 +14,7 @@ impl std::fmt::Display for Value {
         match self {
             Value::Number(n) => write!(f, "{}", n),
             Value::Null => write!(f, "null"),
+            Value::Undefined => write!(f, "undefined"),
         }
     }
 }
@@ -24,6 +26,7 @@ pub enum Expr {
     Literal(Value),
     Ternary(Token, Box<Expr>, Box<Expr>, Box<Expr>),
     Unary(Token, Box<Expr>),
+    Variable(Token),
 }
 
 impl std::fmt::Display for Expr {
@@ -37,6 +40,7 @@ impl std::fmt::Display for Expr {
             Expr::Ternary(op, first, second, third) => {
                 write!(f, "({} {} {} {})", op.lexeme, first, second, third)
             }
+            Expr::Variable(name) => write!(f, "(var {})", name),
             Expr::Unary(op, right) => write!(f, "({} {})", op.lexeme, right),
         }
     }
@@ -45,6 +49,7 @@ impl std::fmt::Display for Expr {
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
     Expression(Box<Expr>),
+    Let(Box<Expr>, Box<Expr>),
     Print(Box<Expr>),
 }
 
@@ -52,6 +57,7 @@ impl std::fmt::Display for Stmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Stmt::Expression(expr) => write!(f, "(expression {})", expr),
+            Stmt::Let(var, expr) => write!(f, "(let {} {})", var, expr),
             Stmt::Print(expr) => write!(f, "(print {})", expr),
         }
     }

@@ -36,6 +36,7 @@ impl Parser {
     fn statement(&mut self) -> Result<Stmt> {
         let result = match self.peek().val {
             TokenValue::Print => self.print_statement(),
+            TokenValue::Let => self.let_statement(),
             _ => self.expression_statement(),
         };
         match result {
@@ -45,6 +46,21 @@ impl Parser {
                 Err(e)
             }
         }
+    }
+
+    fn let_statement(&mut self) -> Result<Stmt> {
+        self.advance();
+        let var = self.expression()?;
+        let Expr::Variable(_) = var else {
+            return Err(Error::new(self.peek().line, "let", "Variable expected."));
+        };
+        let mut expr = Expr::Literal(Value::Undefined);
+        if self.peek().val == TokenValue::Equal {
+            self.advance();
+            expr = self.expression()?;
+        }
+        self.consume(TokenValue::Semicolon, "Initializer or semicolon expected.")?;
+        Ok(Stmt::Let(Box::new(var), Box::new(expr)))
     }
 
     fn print_statement(&mut self) -> Result<Stmt> {
@@ -128,13 +144,14 @@ impl Parser {
     fn primary(&mut self) -> Result<Expr> {
         let token = self.advance();
 
-        match token.val {
-            TokenValue::Number(n) => Ok(Expr::Literal(Value::Number(n))),
+        match &token.val {
+            TokenValue::Number(n) => Ok(Expr::Literal(Value::Number(n.clone()))),
             TokenValue::LeftParen => {
                 let expr = self.expression()?;
                 self.consume(TokenValue::RightParen, "Right paren expected")?;
                 Ok(Expr::Grouping(Box::new(expr)))
             }
+            TokenValue::Identifier => Ok(Expr::Variable(token.clone())),
             _ => Err(Error::from_token(
                 token,
                 format!("Expression expected, found `{}`", token.val),

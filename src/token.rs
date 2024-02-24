@@ -10,8 +10,10 @@ pub enum TokenValue {
     Question,
     Colon,
     Semicolon,
-    Identifier(String),
+    Equal,
+    Identifier,
     Number(f64),
+    Let,
     Print,
     EOF,
 }
@@ -29,8 +31,10 @@ impl std::fmt::Display for TokenValue {
             TokenValue::Question => write!(f, "?"),
             TokenValue::Colon => write!(f, ":"),
             TokenValue::Semicolon => write!(f, ";"),
-            TokenValue::Identifier(name) => write!(f, "(id {})", name),
+            TokenValue::Equal => write!(f, "="),
+            TokenValue::Identifier => write!(f, "id"),
             TokenValue::Number(n) => write!(f, "{}", n),
+            TokenValue::Let => write!(f, "let"),
             TokenValue::Print => write!(f, "print"),
             TokenValue::EOF => write!(f, "end"),
         }
@@ -52,6 +56,6 @@ impl Token {
 
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?} {} {:?}", self.val, self.lexeme, self.line)
+        write!(f, "{:?} '{}' {:?}", self.val, self.lexeme, self.line)
     }
 }

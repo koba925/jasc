@@ -1,15 +1,21 @@
+use std::collections::HashMap;
+
 use crate::ast::{Expr, Stmt, Value};
 use crate::error::Error;
 use crate::token::{Token, TokenValue};
 
-pub struct Interpreter {}
+pub struct Interpreter {
+    env: HashMap<String, Value>,
+}
 
 impl Interpreter {
     pub fn new() -> Interpreter {
-        Interpreter {}
+        Interpreter {
+            env: HashMap::new(),
+        }
     }
 
-    pub fn interpret(&self, statements: Vec<Stmt>) -> Result<Value, Vec<Error>> {
+    pub fn interpret(&mut self, statements: Vec<Stmt>) -> Result<Value, Vec<Error>> {
         let mut errors = vec![];
         let mut value = Value::Number(0.0);
 
@@ -27,11 +33,29 @@ impl Interpreter {
         }
     }
 
-    fn execute(&self, stmt: Stmt) -> Result<Value, Error> {
+    fn execute(&mut self, stmt: Stmt) -> Result<Value, Error> {
         match stmt {
             Stmt::Expression(expr) => self.evaluate(expr),
+            Stmt::Let(var, expr) => self.let_(var, expr),
             Stmt::Print(expr) => self.print(expr),
         }
+    }
+
+    fn let_(&mut self, var: Box<Expr>, expr: Box<Expr>) -> Result<Value, Error> {
+        let Expr::Variable(name) = *var else {
+            panic!("Variable should be passed.");
+        };
+        if self.env.contains_key(&name.lexeme) {
+            return Err(Error::new(
+                name.line,
+                name.lexeme,
+                "Variable already defined.",
+            ));
+        }
+
+        let val = self.evaluate(expr)?;
+        self.env.insert(name.lexeme, val);
+        Ok(Value::Null)
     }
 
     fn print(&self, expr: Box<Expr>) -> Result<Value, Error> {
@@ -47,6 +71,7 @@ impl Interpreter {
             Expr::Literal(value) => Ok(value),
             Expr::Ternary(op, first, second, third) => self.ternary(op, first, second, third),
             Expr::Unary(op, right) => self.unary(op, right),
+            Expr::Variable(name) => self.variable(name),
         }
     }
 
@@ -104,10 +129,22 @@ impl Interpreter {
         }
     }
 
+    fn variable(&self, name: Token) -> Result<Value, Error> {
+        match self.env.get(&name.lexeme) {
+            Some(Value::Undefined) => Err(Error::new(
+                name.line,
+                name.lexeme,
+                "Variable not initialized.",
+            )),
+            Some(val) => Ok(val.clone()),
+            _ => Err(Error::new(name.line, name.lexeme, "Variable not defined.")),
+        }
+    }
+
     fn is_truthy(&self, val: Value) -> bool {
         match val {
             Value::Number(n) => n != 0.0,
-            Value::Null => false,
+            Value::Null | Value::Undefined => false,
         }
     }
 }
