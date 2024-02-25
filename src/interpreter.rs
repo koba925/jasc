@@ -8,6 +8,11 @@ pub struct Interpreter {
     env: HashMap<String, Value>,
 }
 
+// TODO:エラーが出たら終了する
+// let a = 1;
+// let a = a + 1;
+// print a;
+
 impl Interpreter {
     pub fn new() -> Interpreter {
         Interpreter {
@@ -36,15 +41,12 @@ impl Interpreter {
     fn execute(&mut self, stmt: Stmt) -> Result<Value, Error> {
         match stmt {
             Stmt::Expression(expr) => self.evaluate(expr),
-            Stmt::Let(var, expr) => self.let_(var, expr),
+            Stmt::Let(name, expr) => self.let_(name, expr),
             Stmt::Print(expr) => self.print(expr),
         }
     }
 
-    fn let_(&mut self, var: Box<Expr>, expr: Box<Expr>) -> Result<Value, Error> {
-        let Expr::Variable(name) = *var else {
-            panic!("Variable should be passed.");
-        };
+    fn let_(&mut self, name: Token, expr: Box<Expr>) -> Result<Value, Error> {
         if self.env.contains_key(&name.lexeme) {
             return Err(Error::new(
                 name.line,
@@ -58,14 +60,15 @@ impl Interpreter {
         Ok(Value::Null)
     }
 
-    fn print(&self, expr: Box<Expr>) -> Result<Value, Error> {
+    fn print(&mut self, expr: Box<Expr>) -> Result<Value, Error> {
         let result = self.evaluate(expr)?;
         println!("{}", result);
         Ok(Value::Null)
     }
 
-    fn evaluate(&self, expr: Box<Expr>) -> Result<Value, Error> {
+    fn evaluate(&mut self, expr: Box<Expr>) -> Result<Value, Error> {
         match *expr {
+            Expr::Assignment(name, expr) => self.assignment(name, expr),
             Expr::Binary(op, left, right) => self.binary(op, left, right),
             Expr::Grouping(expr) => self.evaluate(expr),
             Expr::Literal(value) => Ok(value),
@@ -75,7 +78,17 @@ impl Interpreter {
         }
     }
 
-    fn binary(&self, op: Token, left: Box<Expr>, right: Box<Expr>) -> Result<Value, Error> {
+    fn assignment(&mut self, name: Token, expr: Box<Expr>) -> Result<Value, Error> {
+        if !self.env.contains_key(&name.lexeme) {
+            return Err(Error::new(name.line, name.lexeme, "Variable not defined."));
+        }
+
+        let val = self.evaluate(expr)?;
+        self.env.insert(name.lexeme, val.clone());
+        Ok(val)
+    }
+
+    fn binary(&mut self, op: Token, left: Box<Expr>, right: Box<Expr>) -> Result<Value, Error> {
         let left_val = self.evaluate(left)?;
         let right_val = self.evaluate(right)?;
 
@@ -100,7 +113,7 @@ impl Interpreter {
         }
     }
 
-    fn unary(&self, op: Token, right: Box<Expr>) -> Result<Value, Error> {
+    fn unary(&mut self, op: Token, right: Box<Expr>) -> Result<Value, Error> {
         let right_val = self.evaluate(right)?;
 
         match op.val {
@@ -113,7 +126,7 @@ impl Interpreter {
     }
 
     fn ternary(
-        &self,
+        &mut self,
         op: Token,
         first: Box<Expr>,
         second: Box<Expr>,

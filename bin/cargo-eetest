@@ -25,11 +25,11 @@ for GROUP in *; do
             echo === test $TEST failed ===
             if ! diff expected%%.out result%%.out > /dev/null; then
                 echo "== stdout expected <-> result =="
-                diff expected%%.out result%%.out
+                diff -y expected%%.out result%%.out
             fi
             if ! diff expected%%.err result%%.err > /dev/null; then
                 echo "== stderr expected <-> result =="
-                diff expected%%.err result%%.err
+                diff -y expected%%.err result%%.err
             fi
         fi
     done

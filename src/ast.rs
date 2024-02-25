@@ -21,6 +21,7 @@ impl std::fmt::Display for Value {
 
 #[derive(Debug, PartialEq)]
 pub enum Expr {
+    Assignment(Token, Box<Expr>),
     Binary(Token, Box<Expr>, Box<Expr>),
     Grouping(Box<Expr>),
     Literal(Value),
@@ -32,6 +33,9 @@ pub enum Expr {
 impl std::fmt::Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Expr::Assignment(name, expr) => {
+                write!(f, "(assignment {} {})", name.lexeme, expr)
+            }
             Expr::Binary(op, left, right) => {
                 write!(f, "({} {} {})", op.lexeme, left, right)
             }
@@ -40,7 +44,7 @@ impl std::fmt::Display for Expr {
             Expr::Ternary(op, first, second, third) => {
                 write!(f, "({} {} {} {})", op.lexeme, first, second, third)
             }
-            Expr::Variable(name) => write!(f, "(var {})", name),
+            Expr::Variable(name) => write!(f, "(var {})", name.lexeme),
             Expr::Unary(op, right) => write!(f, "({} {})", op.lexeme, right),
         }
     }
@@ -49,7 +53,7 @@ impl std::fmt::Display for Expr {
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
     Expression(Box<Expr>),
-    Let(Box<Expr>, Box<Expr>),
+    Let(Token, Box<Expr>),
     Print(Box<Expr>),
 }
 
@@ -57,7 +61,9 @@ impl std::fmt::Display for Stmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Stmt::Expression(expr) => write!(f, "(expression {})", expr),
-            Stmt::Let(var, expr) => write!(f, "(let {} {})", var, expr),
+            Stmt::Let(name, expr) => {
+                write!(f, "(let {} {})", name.lexeme, expr)
+            }
             Stmt::Print(expr) => write!(f, "(print {})", expr),
         }
     }

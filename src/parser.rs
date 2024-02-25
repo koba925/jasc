@@ -50,8 +50,8 @@ impl Parser {
 
     fn let_statement(&mut self) -> Result<Stmt> {
         self.advance();
-        let var = self.expression()?;
-        let Expr::Variable(_) = var else {
+        let var = self.ternary()?;
+        let Expr::Variable(name) = var else {
             return Err(Error::new(self.peek().line, "let", "Variable expected."));
         };
         let mut expr = Expr::Literal(Value::Undefined);
@@ -60,7 +60,7 @@ impl Parser {
             expr = self.expression()?;
         }
         self.consume(TokenValue::Semicolon, "Initializer or semicolon expected.")?;
-        Ok(Stmt::Let(Box::new(var), Box::new(expr)))
+        Ok(Stmt::Let(name, Box::new(expr)))
     }
 
     fn print_statement(&mut self) -> Result<Stmt> {
@@ -77,7 +77,20 @@ impl Parser {
     }
 
     fn expression(&mut self) -> Result<Expr> {
-        self.ternary()
+        self.assignment()
+    }
+
+    fn assignment(&mut self) -> Result<Expr> {
+        let var = self.ternary()?;
+        let Expr::Variable(ref token) = var else {
+            return Ok(var);
+        };
+        if self.peek().val != TokenValue::Equal {
+            return Ok(var);
+        };
+        self.advance();
+        let expr = self.assignment()?;
+        Ok(Expr::Assignment(token.clone(), Box::new(expr)))
     }
 
     fn ternary(&mut self) -> Result<Expr> {

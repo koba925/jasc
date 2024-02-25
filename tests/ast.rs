@@ -40,3 +40,21 @@ fn ternary() {
         "(expression (? 1 (? 2 3 4) (? 5 6 7)))\n",
     );
 }
+
+#[test]
+fn let_() {
+    run::parse("let a = 1;", "(let a 1)\n");
+}
+
+#[test]
+fn assignment() {
+    run::parse("a = 1;", "(expression (assignment a 1))\n");
+    run::parse(
+        "a = b + c;",
+        "(expression (assignment a (+ (var b) (var c))))\n",
+    );
+    run::parse(
+        "a = b = 3;",
+        "(expression (assignment a (assignment b 3)))\n",
+    );
+}

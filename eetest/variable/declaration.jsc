@@ -1,6 +1,6 @@
 let a = 1;
 print a;
 //out 1
-let b = 1 + 2;
+let b = a + 2;
 print b + 3;
 //out 6
