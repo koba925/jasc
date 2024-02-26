@@ -1,3 +1,4 @@
-let c = 1;
-let c = 1;
-//err [line 2] Error at 'c': Variable already defined.
+let a = 1;
+let a = a + 1;
+print a;
+//err [line 2] Error at 'a': Variable already defined.

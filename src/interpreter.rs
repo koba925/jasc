@@ -8,11 +8,6 @@ pub struct Interpreter {
     env: HashMap<String, Value>,
 }
 
-// TODO:エラーが出たら終了する
-// let a = 1;
-// let a = a + 1;
-// print a;
-
 impl Interpreter {
     pub fn new() -> Interpreter {
         Interpreter {
@@ -21,21 +16,16 @@ impl Interpreter {
     }
 
     pub fn interpret(&mut self, statements: Vec<Stmt>) -> Result<Value, Vec<Error>> {
-        let mut errors = vec![];
         let mut value = Value::Number(0.0);
 
         for statement in statements {
             match self.execute(statement) {
                 Ok(v) => value = v,
-                Err(e) => errors.push(e),
+                Err(e) => return Err(vec![e]),
             }
         }
 
-        if errors.is_empty() {
-            Ok(value)
-        } else {
-            Err(errors)
-        }
+        Ok(value)
     }
 
     fn execute(&mut self, stmt: Stmt) -> Result<Value, Error> {
