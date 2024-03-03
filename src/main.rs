@@ -1,3 +1,5 @@
+// TODO:スコープを実装する
+
 use jasc::ast::Value;
 use std::io;
 

@@ -56,6 +56,16 @@ impl Token {
 
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?} '{}' {:?}", self.val, self.lexeme, self.line)
+        write!(f, "({:?} '{}' {:?})", self.val, self.lexeme, self.line)
     }
+}
+
+pub fn stringify_tokens(tokens: &Vec<Token>) -> String {
+    let mut result = String::new();
+
+    for token in tokens {
+        result = format!("{}{}\n", result, token)
+    }
+
+    result
 }

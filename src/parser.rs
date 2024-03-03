@@ -172,6 +172,7 @@ impl Parser {
         }
     }
 
+    // TODO:synchronizeの精度を高める
     fn synchronize(&mut self) {
         // self.advance();
         while !self.is_at_end() {
