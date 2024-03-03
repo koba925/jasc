@@ -1,0 +1,5 @@
+{
+    {
+        print 3;
+    }
+//err [line 5] Error at 'end': No closing brace.

@@ -58,3 +58,13 @@ fn assignment() {
         "(expression (assignment a (assignment b 3)))\n",
     );
 }
+
+#[test]
+fn block() {
+    run::parse("{}", "(block)\n");
+    run::parse("{123;456;}", "(block (expression 123) (expression 456))\n");
+    run::parse(
+        "{123;{456;}}",
+        "(block (expression 123) (block (expression 456)))\n",
+    );
+}

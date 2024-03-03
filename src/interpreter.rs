@@ -16,7 +16,7 @@ impl Interpreter {
     }
 
     pub fn interpret(&mut self, statements: Vec<Stmt>) -> Result<Value, Vec<Error>> {
-        let mut value = Value::Number(0.0);
+        let mut value = Value::Null;
 
         for statement in statements {
             match self.execute(statement) {
@@ -30,10 +30,24 @@ impl Interpreter {
 
     fn execute(&mut self, stmt: Stmt) -> Result<Value, Error> {
         match stmt {
+            Stmt::Block(statements) => self.block(statements),
             Stmt::Expression(expr) => self.evaluate(expr),
             Stmt::Let(name, expr) => self.let_(name, expr),
             Stmt::Print(expr) => self.print(expr),
         }
+    }
+
+    fn block(&mut self, statements: Vec<Stmt>) -> Result<Value, Error> {
+        let mut value = Value::Null;
+
+        for statement in statements {
+            match self.execute(statement) {
+                Ok(v) => value = v,
+                Err(e) => return Err(e),
+            }
+        }
+
+        Ok(value)
     }
 
     fn let_(&mut self, name: Token, expr: Box<Expr>) -> Result<Value, Error> {

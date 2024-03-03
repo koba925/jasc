@@ -11,10 +11,10 @@ fn parens() {
     run::scan("()", "(LeftParen '(' 1)\n(RightParen ')' 1)\n(EOF '' 1)\n");
 }
 
-// #[test]
-// fn braces() {
-//     run::scan("{}", "(LeftBrace '(' 1)\n(RightBrace ')' 1)\n(EOF '' 1)\n");
-// }
+#[test]
+fn braces() {
+    run::scan("{}", "(LeftBrace '{' 1)\n(RightBrace '}' 1)\n(EOF '' 1)\n");
+}
 
 #[test]
 fn skip_whitespaces() {

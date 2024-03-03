@@ -52,6 +52,7 @@ impl std::fmt::Display for Expr {
 
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
+    Block(Vec<Stmt>),
     Expression(Box<Expr>),
     Let(Token, Box<Expr>),
     Print(Box<Expr>),
@@ -60,6 +61,13 @@ pub enum Stmt {
 impl std::fmt::Display for Stmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Stmt::Block(statements) => {
+                write!(f, "(block")?;
+                for statement in statements {
+                    write!(f, " {}", statement)?;
+                }
+                write!(f, ")")
+            }
             Stmt::Expression(expr) => write!(f, "(expression {})", expr),
             Stmt::Let(name, expr) => {
                 write!(f, "(let {} {})", name.lexeme, expr)

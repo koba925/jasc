@@ -51,6 +51,8 @@ impl Scanner {
         match self.advance() {
             '(' => Ok(self.make_token(TokenValue::LeftParen)),
             ')' => Ok(self.make_token(TokenValue::RightParen)),
+            '{' => Ok(self.make_token(TokenValue::LeftBrace)),
+            '}' => Ok(self.make_token(TokenValue::RightBrace)),
             '*' => Ok(self.make_token(TokenValue::Star)),
             '/' => {
                 if self.peek() == '/' {

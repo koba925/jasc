@@ -35,6 +35,7 @@ impl Parser {
 
     fn statement(&mut self) -> Result<Stmt> {
         let result = match self.peek().val {
+            TokenValue::LeftBrace => self.block_statement(),
             TokenValue::Print => self.print_statement(),
             TokenValue::Let => self.let_statement(),
             _ => self.expression_statement(),
@@ -46,6 +47,22 @@ impl Parser {
                 Err(e)
             }
         }
+    }
+
+    fn block_statement(&mut self) -> Result<Stmt> {
+        self.advance();
+        let mut statements = vec![];
+        while self.peek().val != TokenValue::RightBrace {
+            if self.is_at_end() {
+                return Err(Error::new(self.peek().line, "end", "No closing brace."));
+            }
+            match self.statement() {
+                Ok(stmt) => statements.push(stmt),
+                Err(error) => return Err(error),
+            }
+        }
+        self.advance();
+        Ok(Stmt::Block(statements))
     }
 
     fn let_statement(&mut self) -> Result<Stmt> {
