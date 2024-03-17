@@ -1,0 +1,6 @@
+let a = 1;
+{
+    let b = 2;
+    print c;
+}
+//err [line 4] Error at 'c': Variable not defined.

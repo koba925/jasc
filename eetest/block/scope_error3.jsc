@@ -1,0 +1,6 @@
+let a = 1;
+{
+    let b = 2;
+    let b = 2;
+}
+//err [line 4] Error at 'b': Variable already defined.

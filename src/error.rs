@@ -1,3 +1,5 @@
+// TODO: impl Into<String> を &strに変える
+
 use crate::token::{Token, TokenValue};
 
 #[derive(Debug, PartialEq)]

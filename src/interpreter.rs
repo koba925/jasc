@@ -1,17 +1,75 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use crate::ast::{Expr, Stmt, Value};
 use crate::error::Error;
 use crate::token::{Token, TokenValue};
 
+#[derive(Debug, Clone)]
+struct Environment {
+    vars: HashMap<String, Value>,
+    enclosing: Option<Rc<RefCell<Environment>>>,
+}
+
+impl Environment {
+    pub fn new() -> Environment {
+        Environment {
+            vars: HashMap::new(),
+            enclosing: None,
+        }
+    }
+
+    pub fn enclosed_by(enclosing: &Rc<RefCell<Environment>>) -> Rc<RefCell<Environment>> {
+        Rc::new(RefCell::new(Environment {
+            vars: HashMap::new(),
+            enclosing: Some(Rc::clone(enclosing)),
+        }))
+    }
+
+    pub fn define(&mut self, name: &Token, val: Value) -> Result<Value, Error> {
+        if self.vars.contains_key(&name.lexeme) {
+            return Err(Error::from_token(name, "Variable already defined."));
+        }
+
+        self.vars.insert(name.lexeme.clone(), val);
+        Ok(Value::Null)
+    }
+
+    pub fn assign(&mut self, name: &Token, val: Value) -> Result<Value, Error> {
+        if self.vars.contains_key(&name.lexeme) {
+            self.vars.insert(name.lexeme.clone(), val.clone());
+            Ok(val)
+        } else if let Some(enclosing) = &self.enclosing {
+            enclosing.borrow_mut().assign(name, val)
+        } else {
+            Err(Error::from_token(name, "Variable not defined."))
+        }
+    }
+
+    pub fn get(&self, name: &Token) -> Result<Value, Error> {
+        match self.vars.get(&name.lexeme) {
+            Some(Value::Undefined) => Err(Error::from_token(name, "Variable not initialized.")),
+            Some(val) => Ok(val.clone()),
+            _ => {
+                if let Some(enclosing) = &self.enclosing {
+                    enclosing.borrow().get(name)
+                } else {
+                    Err(Error::from_token(name, "Variable not defined."))
+                }
+            }
+        }
+    }
+}
+
 pub struct Interpreter {
-    env: HashMap<String, Value>,
+    env: Rc<RefCell<Environment>>,
 }
 
 impl Interpreter {
     pub fn new() -> Interpreter {
         Interpreter {
-            env: HashMap::new(),
+            env: Rc::new(RefCell::new(Environment::new())),
         }
     }
 
@@ -38,30 +96,28 @@ impl Interpreter {
     }
 
     fn block(&mut self, statements: Vec<Stmt>) -> Result<Value, Error> {
+        let enclosing = Rc::clone(&self.env);
+        self.env = Environment::enclosed_by(&self.env);
+
         let mut value = Value::Null;
 
         for statement in statements {
             match self.execute(statement) {
                 Ok(v) => value = v,
-                Err(e) => return Err(e),
+                Err(e) => {
+                    self.env = enclosing;
+                    return Err(e);
+                }
             }
         }
 
+        self.env = enclosing;
         Ok(value)
     }
 
     fn let_(&mut self, name: Token, expr: Box<Expr>) -> Result<Value, Error> {
-        if self.env.contains_key(&name.lexeme) {
-            return Err(Error::new(
-                name.line,
-                name.lexeme,
-                "Variable already defined.",
-            ));
-        }
-
         let val = self.evaluate(expr)?;
-        self.env.insert(name.lexeme, val);
-        Ok(Value::Null)
+        self.env.borrow_mut().define(&name, val)
     }
 
     fn print(&mut self, expr: Box<Expr>) -> Result<Value, Error> {
@@ -83,13 +139,8 @@ impl Interpreter {
     }
 
     fn assignment(&mut self, name: Token, expr: Box<Expr>) -> Result<Value, Error> {
-        if !self.env.contains_key(&name.lexeme) {
-            return Err(Error::new(name.line, name.lexeme, "Variable not defined."));
-        }
-
         let val = self.evaluate(expr)?;
-        self.env.insert(name.lexeme, val.clone());
-        Ok(val)
+        self.env.borrow_mut().assign(&name, val)
     }
 
     fn binary(&mut self, op: Token, left: Box<Expr>, right: Box<Expr>) -> Result<Value, Error> {
@@ -147,15 +198,7 @@ impl Interpreter {
     }
 
     fn variable(&self, name: Token) -> Result<Value, Error> {
-        match self.env.get(&name.lexeme) {
-            Some(Value::Undefined) => Err(Error::new(
-                name.line,
-                name.lexeme,
-                "Variable not initialized.",
-            )),
-            Some(val) => Ok(val.clone()),
-            _ => Err(Error::new(name.line, name.lexeme, "Variable not defined.")),
-        }
+        self.env.borrow().get(&name)
     }
 
     fn is_truthy(&self, val: Value) -> bool {

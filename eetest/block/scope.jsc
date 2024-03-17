@@ -1,0 +1,24 @@
+let a = 1;
+let b = 2;
+print a;
+print b;
+//out 1
+//out 2
+{
+    a = 3;
+    let b = 4;
+    let c = 5;
+    print a;
+    print b;
+    print c;
+//out 3
+//out 4
+//out 5
+    b = 6;
+    print b;
+//out 6
+}
+print a;
+print b;
+//out 3
+//out 2
