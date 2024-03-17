@@ -184,7 +184,7 @@ impl Parser {
             TokenValue::Identifier => Ok(Expr::Variable(token.clone())),
             _ => Err(Error::from_token(
                 token,
-                format!("Expression expected, found `{}`", token.val),
+                &format!("Expression expected, found `{}`", token.val),
             )),
         }
     }
@@ -200,7 +200,7 @@ impl Parser {
         }
     }
 
-    fn consume(&mut self, expected: TokenValue, msg: impl Into<String>) -> Result<&Token> {
+    fn consume(&mut self, expected: TokenValue, msg: &str) -> Result<&Token> {
         if self.check(expected) {
             Ok(self.advance())
         } else {

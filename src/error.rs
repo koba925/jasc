@@ -1,5 +1,3 @@
-// TODO: impl Into<String> を &strに変える
-
 use crate::token::{Token, TokenValue};
 
 #[derive(Debug, PartialEq)]
@@ -10,18 +8,18 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn new(line: usize, location: impl Into<String>, msg: impl Into<String>) -> Error {
+    pub fn new(line: usize, location: &str, msg: &str) -> Error {
         Error {
             line,
-            location: location.into(),
-            msg: msg.into(),
+            location: location.to_string(),
+            msg: msg.to_string(),
         }
     }
 
-    pub fn from_token(token: &Token, msg: impl Into<String>) -> Error {
+    pub fn from_token(token: &Token, msg: &str) -> Error {
         match token.val {
             TokenValue::EOF => Self::new(token.line, "end", msg),
-            _ => Self::new(token.line, token.lexeme.clone(), msg),
+            _ => Self::new(token.line, &token.lexeme, msg),
         }
     }
 

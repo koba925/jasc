@@ -76,7 +76,11 @@ impl Scanner {
             '=' => Ok(self.make_token(TokenValue::Equal)),
             c if c.is_ascii_digit() => Ok(self.number()),
             c if c.is_ascii_alphabetic() => Ok(self.identifier()),
-            c => Err(Error::new(self.line, c, "Unexpected character.")),
+            c => Err(Error::new(
+                self.line,
+                &c.to_string(),
+                "Unexpected character.",
+            )),
         }
     }
 

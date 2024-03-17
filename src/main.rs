@@ -1,5 +1,4 @@
-// TODO:スコープを実装する
-
+// DOING: 関数を作る
 use jasc::ast::Value;
 use std::io;
 

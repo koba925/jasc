@@ -128,22 +128,22 @@ impl Interpreter {
 
     fn evaluate(&mut self, expr: Box<Expr>) -> Result<Value, Error> {
         match *expr {
-            Expr::Assignment(name, expr) => self.assignment(name, expr),
-            Expr::Binary(op, left, right) => self.binary(op, left, right),
+            Expr::Assignment(name, expr) => self.assignment(&name, expr),
+            Expr::Binary(op, left, right) => self.binary(&op, left, right),
             Expr::Grouping(expr) => self.evaluate(expr),
             Expr::Literal(value) => Ok(value),
-            Expr::Ternary(op, first, second, third) => self.ternary(op, first, second, third),
-            Expr::Unary(op, right) => self.unary(op, right),
-            Expr::Variable(name) => self.variable(name),
+            Expr::Ternary(op, first, second, third) => self.ternary(&op, first, second, third),
+            Expr::Unary(op, right) => self.unary(&op, right),
+            Expr::Variable(name) => self.variable(&name),
         }
     }
 
-    fn assignment(&mut self, name: Token, expr: Box<Expr>) -> Result<Value, Error> {
+    fn assignment(&mut self, name: &Token, expr: Box<Expr>) -> Result<Value, Error> {
         let val = self.evaluate(expr)?;
         self.env.borrow_mut().assign(&name, val)
     }
 
-    fn binary(&mut self, op: Token, left: Box<Expr>, right: Box<Expr>) -> Result<Value, Error> {
+    fn binary(&mut self, op: &Token, left: Box<Expr>, right: Box<Expr>) -> Result<Value, Error> {
         let left_val = self.evaluate(left)?;
         let right_val = self.evaluate(right)?;
 
@@ -168,7 +168,7 @@ impl Interpreter {
         }
     }
 
-    fn unary(&mut self, op: Token, right: Box<Expr>) -> Result<Value, Error> {
+    fn unary(&mut self, op: &Token, right: Box<Expr>) -> Result<Value, Error> {
         let right_val = self.evaluate(right)?;
 
         match op.val {
@@ -182,7 +182,7 @@ impl Interpreter {
 
     fn ternary(
         &mut self,
-        op: Token,
+        op: &Token,
         first: Box<Expr>,
         second: Box<Expr>,
         third: Box<Expr>,
@@ -197,8 +197,8 @@ impl Interpreter {
         }
     }
 
-    fn variable(&self, name: Token) -> Result<Value, Error> {
-        self.env.borrow().get(&name)
+    fn variable(&self, name: &Token) -> Result<Value, Error> {
+        self.env.borrow().get(name)
     }
 
     fn is_truthy(&self, val: Value) -> bool {
