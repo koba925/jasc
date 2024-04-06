@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 cargo build || exit 1
-cargo test --test '*' || exit 1
+cargo test || exit 1
+# cargo test --test '*' || exit 1
 
 if ! [ -d $PROJECTDIR/eetest ]; then
     echo "No eetest directory."
