@@ -1,4 +1,5 @@
 pub mod ast;
+mod env;
 pub mod error;
 mod interpreter;
 mod parser;
