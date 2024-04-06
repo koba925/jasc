@@ -1,0 +1,10 @@
+function a;
+//err [line 1] Error at 'a': Left parenthesis expected
+function (a;
+//err [line 2] Error at ';': Right paren expected.
+function (+);
+//err [line 3] Error at '+': Identifier expected.
+function (a) +;
+//err [line 4] Error at '+': Left brace expected
+function (a,
+//err [line 6] Error at 'end': Right paren expected.

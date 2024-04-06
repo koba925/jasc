@@ -34,35 +34,31 @@ impl Parser {
     }
 
     fn statement(&mut self) -> Result<Stmt> {
-        let result = match self.peek().val {
+        match self.peek().val {
             TokenValue::LeftBrace => self.block_statement(),
             TokenValue::Print => self.print_statement(),
             TokenValue::Let => self.let_statement(),
             _ => self.expression_statement(),
-        };
-        match result {
-            Ok(stmt) => Ok(stmt),
-            Err(e) => {
-                self.synchronize();
-                Err(e)
-            }
         }
+        .or_else(|e| {
+            self.synchronize();
+            Err(e)
+        })
     }
 
     fn block_statement(&mut self) -> Result<Stmt> {
         self.advance();
-        let mut statements = vec![];
-        while self.peek().val != TokenValue::RightBrace {
-            if self.is_at_end() {
-                return Err(Error::new(self.peek().line, "end", "No closing brace."));
-            }
-            match self.statement() {
-                Ok(stmt) => statements.push(stmt),
-                Err(error) => return Err(error),
-            }
-        }
-        self.advance();
+        let statements = self.block()?;
         Ok(Stmt::Block(statements))
+    }
+
+    fn block(&mut self) -> Result<Vec<Stmt>> {
+        let mut statements = vec![];
+        while !self.check(TokenValue::RightBrace) && !self.is_at_end() {
+            statements.push(self.statement()?)
+        }
+        self.consume(TokenValue::RightBrace, "Right brace expected.")?;
+        Ok(statements)
     }
 
     fn let_statement(&mut self) -> Result<Stmt> {
@@ -72,7 +68,7 @@ impl Parser {
             return Err(Error::new(self.peek().line, "let", "Variable expected."));
         };
         let mut expr = Expr::Literal(Value::Undefined);
-        if self.peek().val == TokenValue::Equal {
+        if self.check(TokenValue::Equal) {
             self.advance();
             expr = self.expression()?;
         }
@@ -102,7 +98,7 @@ impl Parser {
         let Expr::Variable(ref token) = var else {
             return Ok(var);
         };
-        if self.peek().val != TokenValue::Equal {
+        if !self.check(TokenValue::Equal) {
             return Ok(var);
         };
         self.advance();
@@ -167,8 +163,38 @@ impl Parser {
                 let right = self.primary()?;
                 Ok(Expr::Unary(op, Box::new(right)))
             }
-            _ => self.primary(),
+            _ => self.call(),
         }
+    }
+
+    fn call(&mut self) -> Result<Expr> {
+        let mut expr = self.primary()?;
+
+        while self.check(TokenValue::LeftParen) {
+            let token = self.peek().clone();
+            self.advance();
+            let args = self.arguments()?;
+            expr = Expr::Call(token, Box::new(expr), args);
+        }
+        Ok(expr)
+    }
+
+    fn arguments(&mut self) -> Result<Vec<Expr>> {
+        let mut args = vec![];
+
+        while !self.check(TokenValue::RightParen) {
+            if self.is_at_end() {
+                return Err(Error::from_token(self.peek(), "No closing parenthesis."));
+            }
+            let expr = self.expression()?;
+            args.push(expr);
+            if !self.check(TokenValue::RightParen) {
+                self.consume(TokenValue::Comma, "Comma expected.")?;
+            }
+        }
+
+        self.advance();
+        Ok(args)
     }
 
     fn primary(&mut self) -> Result<Expr> {
@@ -181,12 +207,41 @@ impl Parser {
                 self.consume(TokenValue::RightParen, "Right paren expected")?;
                 Ok(Expr::Grouping(Box::new(expr)))
             }
+            TokenValue::Function => self.function(),
             TokenValue::Identifier => Ok(Expr::Variable(token.clone())),
             _ => Err(Error::from_token(
                 token,
                 &format!("Expression expected, found `{}`", token.val),
             )),
         }
+    }
+
+    fn function(&mut self) -> Result<Expr> {
+        self.consume(TokenValue::LeftParen, "Left parenthesis expected")?;
+        let parameters = self.parameters()?;
+        self.consume(TokenValue::LeftBrace, "Left brace expected")?;
+        let statements = self.block()?;
+
+        Ok(Expr::Function(parameters, statements))
+    }
+
+    fn parameters(&mut self) -> Result<Vec<Token>> {
+        let mut parameters = vec![];
+
+        if !self.check(TokenValue::RightParen) {
+            while !self.is_at_end() {
+                parameters.push(
+                    self.consume(TokenValue::Identifier, "Identifier expected.")?
+                        .clone(),
+                );
+                if !self.check(TokenValue::Comma) {
+                    break;
+                }
+                self.advance();
+            }
+        }
+        self.consume(TokenValue::RightParen, "Right paren expected.")?;
+        Ok(parameters)
     }
 
     // TODO:synchronizeの精度を高める

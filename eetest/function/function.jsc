@@ -1,0 +1,21 @@
+print function () { 1; }();
+//out 1
+print function (a) { a + 1; }(2);
+//out 3
+print function (a) { a + 1; }(1 + 2);
+//out 4
+print function (a, b) { a + b; }(2, 3);
+//out 5
+let f = function (a) { a + 1; };
+print f(3);
+//out 4
+let a = 3;
+print f(4);
+//out 5
+print f;
+//out (function (a))
+let ff = function () { f; };
+print ff()(5);
+//out 6
+
+

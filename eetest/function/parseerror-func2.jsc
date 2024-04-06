@@ -1,2 +1,2 @@
-{
+function (a) {
 //err [line 2] Error at 'end': Right brace expected.

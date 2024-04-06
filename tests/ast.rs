@@ -68,3 +68,19 @@ fn block() {
         "(block (expression 123) (block (expression 456)))\n",
     );
 }
+
+#[test]
+fn function() {
+    run::parse(
+        "function(){};",
+        "(expression (function (parameters) (statements)))\n",
+    );
+    run::parse(
+        "function(a){print a;};",
+        "(expression (function (parameters a) (statements (print (var a)))))\n",
+    );
+    run::parse(
+        "function(a, b){print a;};",
+        "(expression (function (parameters a b) (statements (print (var a)))))\n",
+    );
+}

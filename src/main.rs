@@ -1,4 +1,5 @@
-// DOING: 関数を作る
+// TODO:: Option<Rc<Refcell>>を<Option<Box>>とOption::takeで書き直せるのでは？ → ダメぽい
+
 use jasc::ast::Value;
 use std::io;
 

@@ -1,0 +1,2 @@
+print function (a, b) {} (1, 2, 3);
+//err [line 1] Error at '(': Number of the arguments does not match.

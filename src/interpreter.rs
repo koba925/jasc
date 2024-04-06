@@ -130,6 +130,8 @@ impl Interpreter {
         match *expr {
             Expr::Assignment(name, expr) => self.assignment(&name, expr),
             Expr::Binary(op, left, right) => self.binary(&op, left, right),
+            Expr::Call(ref token, callee, args) => self.call(token, callee, args),
+            Expr::Function(parameters, statements) => self.function(parameters, statements),
             Expr::Grouping(expr) => self.evaluate(expr),
             Expr::Literal(value) => Ok(value),
             Expr::Ternary(op, first, second, third) => self.ternary(&op, first, second, third),
@@ -168,6 +170,42 @@ impl Interpreter {
         }
     }
 
+    fn call(&mut self, token: &Token, callee: Box<Expr>, args: Vec<Expr>) -> Result<Value, Error> {
+        let func = self.evaluate(callee)?;
+        let Value::Function(parameters, statements) = func else {
+            return Err(Error::from_token(token, "Callee is not a function."));
+        };
+        if parameters.len() != args.len() {
+            return Err(Error::from_token(
+                token,
+                "Number of the arguments does not match.",
+            ));
+        }
+
+        let enclosing = Rc::clone(&self.env);
+        self.env = Environment::enclosed_by(&self.env);
+
+        for (p, a) in parameters.iter().zip(args) {
+            let val = self.evaluate(Box::new(a))?;
+            self.env.borrow_mut().define(&p, val)?;
+        }
+
+        let mut value = Value::Null;
+
+        for statement in statements {
+            match self.execute(statement) {
+                Ok(v) => value = v,
+                Err(e) => {
+                    self.env = enclosing;
+                    return Err(e);
+                }
+            }
+        }
+
+        self.env = enclosing;
+        Ok(value)
+    }
+
     fn unary(&mut self, op: &Token, right: Box<Expr>) -> Result<Value, Error> {
         let right_val = self.evaluate(right)?;
 
@@ -201,10 +239,15 @@ impl Interpreter {
         self.env.borrow().get(name)
     }
 
+    fn function(&mut self, parameters: Vec<Token>, statements: Vec<Stmt>) -> Result<Value, Error> {
+        Ok(Value::Function(parameters, statements))
+    }
+
     fn is_truthy(&self, val: Value) -> bool {
         match val {
             Value::Number(n) => n != 0.0,
             Value::Null | Value::Undefined => false,
+            _ => true,
         }
     }
 }
