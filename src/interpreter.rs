@@ -116,7 +116,7 @@ impl Interpreter {
 
     fn call(&mut self, token: &Token, callee: Box<Expr>, args: Vec<Expr>) -> Result<Value, Error> {
         let func = self.evaluate(callee)?;
-        let Value::Function(parameters, statements) = func else {
+        let Value::Function(parameters, statements, env) = func else {
             return Err(Error::from_token(token, "Callee is not a function."));
         };
         if parameters.len() != args.len() {
@@ -126,13 +126,15 @@ impl Interpreter {
             ));
         }
 
-        let enclosing = Rc::clone(&self.env);
-        self.env = Environment::enclosed_by(&self.env);
+        let closure = Environment::enclosed_by(&env);
 
         for (p, a) in parameters.iter().zip(args) {
             let val = self.evaluate(Box::new(a))?;
-            self.env.borrow_mut().define(&p, val)?;
+            closure.borrow_mut().define(&p, val)?;
         }
+
+        let previous = Rc::clone(&self.env);
+        self.env = Environment::enclosed_by(&closure);
 
         let mut value = Value::Null;
 
@@ -140,13 +142,13 @@ impl Interpreter {
             match self.execute(statement) {
                 Ok(v) => value = v,
                 Err(e) => {
-                    self.env = enclosing;
+                    self.env = previous;
                     return Err(e);
                 }
             }
         }
 
-        self.env = enclosing;
+        self.env = previous;
         Ok(value)
     }
 
@@ -184,7 +186,11 @@ impl Interpreter {
     }
 
     fn function(&mut self, parameters: Vec<Token>, statements: Vec<Stmt>) -> Result<Value, Error> {
-        Ok(Value::Function(parameters, statements))
+        Ok(Value::Function(
+            parameters,
+            statements,
+            Rc::clone(&self.env),
+        ))
     }
 
     fn is_truthy(&self, val: Value) -> bool {

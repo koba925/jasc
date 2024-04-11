@@ -1,7 +1,10 @@
 // TODO: ValueをTokenの定義でも使う
 
+use std::cell::RefCell;
 use std::fmt::Display;
+use std::rc::Rc;
 
+use crate::env::Environment;
 use crate::token::Token;
 
 fn vec_to_str<T: Display>(v: &Vec<T>) -> String {
@@ -21,7 +24,7 @@ fn vec_to_str<T: Display>(v: &Vec<T>) -> String {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
-    Function(Vec<Token>, Vec<Stmt>),
+    Function(Vec<Token>, Vec<Stmt>, Rc<RefCell<Environment>>),
     Number(f64),
     Null,
     Undefined,
@@ -31,7 +34,7 @@ pub enum Value {
 impl std::fmt::Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Value::Function(parameters, _) => {
+            Value::Function(parameters, _, _) => {
                 let names = parameters.iter().map(|p| &p.lexeme).collect();
                 write!(f, "(function {})", vec_to_str(&names))
             }
