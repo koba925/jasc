@@ -1,0 +1,11 @@
+if 1) { print 1; }
+//err [line 1] Error at '1': Left paren expected.
+//err [line 1] Error at '}': Expression expected, found `}`
+if (1 { print 2; }
+//err [line 2] Error at '{': Right paren expected.
+//err [line 2] Error at '}': Expression expected, found `}`
+if (1) print 2; }
+//err [line 3] Error at 'print': Left brace expected.
+//err [line 3] Error at '}': Expression expected, found `}`
+if (1) { print 2;
+//err [line 5] Error at 'end': Right brace expected.

@@ -93,25 +93,33 @@ impl std::fmt::Display for Expr {
     }
 }
 
+// TODO: 全部にTokenを持たせる？
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     Block(Vec<Stmt>),
     Expression(Box<Expr>),
+    If(Box<Expr>, Vec<Stmt>, Option<Vec<Stmt>>),
     Let(Token, Box<Expr>),
     Print(Box<Expr>),
 }
 
+// 全部 {:?} でもいいか？テストはどう書ける（文字列として取れる？）？
 impl std::fmt::Display for Stmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Stmt::Block(statements) => {
-                write!(f, "(block")?;
-                for statement in statements {
-                    write!(f, " {}", statement)?;
-                }
-                write!(f, ")")
+                write!(f, "(block {})", stringify_statements(statements))
             }
             Stmt::Expression(expr) => write!(f, "(expression {})", expr),
+            Stmt::If(condition, consequence, alternative) => {
+                write!(
+                    f,
+                    "(if ({}) (block {}) ({:?}))",
+                    condition,
+                    stringify_statements(consequence),
+                    alternative
+                )
+            }
             Stmt::Let(name, expr) => {
                 write!(f, "(let {} {})", name.lexeme, expr)
             }
@@ -122,9 +130,15 @@ impl std::fmt::Display for Stmt {
 
 pub fn stringify_statements(statements: &Vec<Stmt>) -> String {
     let mut result = String::new();
+    let mut first = true;
 
     for statement in statements {
-        result = format!("{}{}\n", result, statement)
+        if first {
+            result = format!("{}", statement);
+            first = false;
+        } else {
+            result = format!("{} {}", result, statement)
+        }
     }
 
     result

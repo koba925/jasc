@@ -36,8 +36,9 @@ impl Parser {
     fn statement(&mut self) -> Result<Stmt> {
         match self.peek().val {
             TokenValue::LeftBrace => self.block_statement(),
-            TokenValue::Print => self.print_statement(),
+            TokenValue::If => self.if_statement(),
             TokenValue::Let => self.let_statement(),
+            TokenValue::Print => self.print_statement(),
             _ => self.expression_statement(),
         }
         .or_else(|e| {
@@ -49,6 +50,7 @@ impl Parser {
     fn block_statement(&mut self) -> Result<Stmt> {
         self.advance();
         let statements = self.block()?;
+        self.consume(TokenValue::RightBrace, "Right brace expected.")?;
         Ok(Stmt::Block(statements))
     }
 
@@ -57,8 +59,18 @@ impl Parser {
         while !self.check(TokenValue::RightBrace) && !self.is_at_end() {
             statements.push(self.statement()?)
         }
-        self.consume(TokenValue::RightBrace, "Right brace expected.")?;
         Ok(statements)
+    }
+
+    fn if_statement(&mut self) -> Result<Stmt> {
+        self.advance();
+        self.consume(TokenValue::LeftParen, "Left paren expected.")?;
+        let condition = self.expression()?;
+        self.consume(TokenValue::RightParen, "Right paren expected.")?;
+        self.consume(TokenValue::LeftBrace, "Left brace expected.")?;
+        let consequence = self.block()?;
+        self.consume(TokenValue::RightBrace, "Right brace expected.")?;
+        Ok(Stmt::If(Box::new(condition), consequence, None))
     }
 
     fn let_statement(&mut self) -> Result<Stmt> {
@@ -221,6 +233,7 @@ impl Parser {
         let parameters = self.parameters()?;
         self.consume(TokenValue::LeftBrace, "Left brace expected")?;
         let statements = self.block()?;
+        self.consume(TokenValue::RightBrace, "Right brace expected.")?;
 
         Ok(Expr::Function(parameters, statements))
     }
@@ -244,11 +257,13 @@ impl Parser {
         Ok(parameters)
     }
 
-    // TODO:synchronizeの精度を高める
     fn synchronize(&mut self) {
         // self.advance();
         while !self.is_at_end() {
             if self.previous().val == TokenValue::Semicolon {
+                return;
+            }
+            if let TokenValue::If | TokenValue::Let | TokenValue::Print = self.peek().val {
                 return;
             }
             self.advance();

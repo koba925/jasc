@@ -34,6 +34,9 @@ impl Interpreter {
         match stmt {
             Stmt::Block(statements) => self.block(statements),
             Stmt::Expression(expr) => self.evaluate(expr),
+            Stmt::If(condition, consequence, alternative) => {
+                self.if_(condition, consequence, alternative)
+            }
             Stmt::Let(name, expr) => self.let_(name, expr),
             Stmt::Print(expr) => self.print(expr),
         }
@@ -57,6 +60,20 @@ impl Interpreter {
 
         self.env = enclosing;
         Ok(value)
+    }
+
+    fn if_(
+        &mut self,
+        condition: Box<Expr>,
+        consequence: Vec<Stmt>,
+        _alternative: Option<Vec<Stmt>>,
+    ) -> Result<Value, Error> {
+        let cond = self.evaluate(condition)?;
+        if self.is_truthy(cond) {
+            Ok(self.block(consequence)?)
+        } else {
+            Ok(Value::Null)
+        }
     }
 
     fn let_(&mut self, name: Token, expr: Box<Expr>) -> Result<Value, Error> {
