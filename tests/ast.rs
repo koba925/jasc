@@ -84,5 +84,14 @@ fn function() {
 
 #[test]
 fn if_() {
-    run::parse("if (1) {2;}", "(if (1) (block (expression 2)) (None))");
+    run::parse("if (1) 2;", "(if (1) (expression 2))");
+    run::parse("if (1) {2;}", "(if (1) (block (expression 2)))");
+    run::parse(
+        "if (1) 2; else 3;",
+        "(if (1) (expression 2) (expression 3))",
+    );
+    run::parse(
+        "if (1) {2;} else {3;}",
+        "(if (1) (block (expression 2)) (block (expression 3)))",
+    );
 }

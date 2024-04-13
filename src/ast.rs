@@ -98,7 +98,7 @@ impl std::fmt::Display for Expr {
 pub enum Stmt {
     Block(Vec<Stmt>),
     Expression(Box<Expr>),
-    If(Box<Expr>, Vec<Stmt>, Option<Vec<Stmt>>),
+    If(Box<Expr>, Box<Stmt>, Option<Box<Stmt>>),
     Let(Token, Box<Expr>),
     Print(Box<Expr>),
 }
@@ -114,10 +114,14 @@ impl std::fmt::Display for Stmt {
             Stmt::If(condition, consequence, alternative) => {
                 write!(
                     f,
-                    "(if ({}) (block {}) ({:?}))",
+                    "(if ({}) {}{})",
                     condition,
-                    stringify_statements(consequence),
-                    alternative
+                    consequence,
+                    if let Some(alt) = alternative {
+                        format!(" {}", alt.to_string())
+                    } else {
+                        "".to_string()
+                    }
                 )
             }
             Stmt::Let(name, expr) => {

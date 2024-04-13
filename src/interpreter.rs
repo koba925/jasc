@@ -65,12 +65,14 @@ impl Interpreter {
     fn if_(
         &mut self,
         condition: Box<Expr>,
-        consequence: Vec<Stmt>,
-        _alternative: Option<Vec<Stmt>>,
+        consequence: Box<Stmt>,
+        alternative: Option<Box<Stmt>>,
     ) -> Result<Value, Error> {
         let cond = self.evaluate(condition)?;
         if self.is_truthy(cond) {
-            Ok(self.block(consequence)?)
+            Ok(self.execute(*consequence)?)
+        } else if let Some(alt) = alternative {
+            Ok(self.execute(*alt)?)
         } else {
             Ok(Value::Null)
         }

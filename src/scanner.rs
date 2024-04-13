@@ -109,6 +109,7 @@ impl Scanner {
         match lexeme.as_str() {
             "function" => self.make_token(TokenValue::Function),
             "if" => self.make_token(TokenValue::If),
+            "else" => self.make_token(TokenValue::Else),
             "let" => self.make_token(TokenValue::Let),
             "print" => self.make_token(TokenValue::Print),
             _ => self.make_token(TokenValue::Identifier),
@@ -145,7 +146,7 @@ mod test {
 
     #[test]
     fn test_scanner() {
-        let src = "function (a, b) { let a = (1 + 2) / 3 * 4;\nif print a ? 0 : -1; }";
+        let src = "function (a, b) { let a = (1 + 2) / 3 * 4;\nif else print a ? 0 : -1; }";
         let result = Scanner::new(src.to_string()).scan();
         let expected = vec![
             Token::new(TokenValue::Function, "function".to_string(), 1),
@@ -169,6 +170,7 @@ mod test {
             Token::new(TokenValue::Number(4.0), "4".to_string(), 1),
             Token::new(TokenValue::Semicolon, ";".to_string(), 1),
             Token::new(TokenValue::If, "if".to_string(), 2),
+            Token::new(TokenValue::Else, "else".to_string(), 2),
             Token::new(TokenValue::Print, "print".to_string(), 2),
             Token::new(TokenValue::Identifier, "a".to_string(), 2),
             Token::new(TokenValue::Question, "?".to_string(), 2),

@@ -67,10 +67,17 @@ impl Parser {
         self.consume(TokenValue::LeftParen, "Left paren expected.")?;
         let condition = self.expression()?;
         self.consume(TokenValue::RightParen, "Right paren expected.")?;
-        self.consume(TokenValue::LeftBrace, "Left brace expected.")?;
-        let consequence = self.block()?;
-        self.consume(TokenValue::RightBrace, "Right brace expected.")?;
-        Ok(Stmt::If(Box::new(condition), consequence, None))
+        let consequence = self.statement()?;
+        let mut alternative = None;
+        if self.peek().val == TokenValue::Else {
+            self.advance();
+            alternative = Some(Box::new(self.statement()?));
+        }
+        Ok(Stmt::If(
+            Box::new(condition),
+            Box::new(consequence),
+            alternative,
+        ))
     }
 
     fn let_statement(&mut self) -> Result<Stmt> {
