@@ -192,24 +192,24 @@ impl Interpreter {
         let previous = Rc::clone(&self.env);
         self.env = Environment::enclosed_by(&closure);
 
-        let mut value = Value::Null;
+        let mut result = Ok(Value::Null);
 
         for statement in statements {
             match self.execute(statement) {
-                Ok(v) => value = v,
+                Ok(v) => result = Ok(v),
                 Err(Runtime::Return(v)) => {
-                    self.env = previous;
-                    return Ok(v);
+                    result = Ok(v);
+                    break;
                 }
                 Err(e) => {
-                    self.env = previous;
-                    return Err(e);
+                    result = Err(e);
+                    break;
                 }
             }
         }
 
         self.env = previous;
-        Ok(value)
+        result
     }
 
     fn unary(&mut self, op: &Token, right: Box<Expr>) -> Result<Value> {
