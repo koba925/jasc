@@ -77,8 +77,8 @@ fn function() {
         "(expression (function (parameters a) (statements (print (var a)))))",
     );
     run::parse(
-        "function(a, b){print a;};",
-        "(expression (function (parameters a b) (statements (print (var a)))))",
+        "function(a, b){return a;};",
+        "(expression (function (parameters a b) (statements (return (var a)))))",
     );
 }
 

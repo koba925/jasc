@@ -59,6 +59,7 @@ pub enum Expr {
     Variable(Token),
 }
 
+// 全部 {:?} でもいいか？テストはどう書ける？
 impl std::fmt::Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -101,9 +102,10 @@ pub enum Stmt {
     If(Box<Expr>, Box<Stmt>, Option<Box<Stmt>>),
     Let(Token, Box<Expr>),
     Print(Box<Expr>),
+    Return(Option<Box<Expr>>),
 }
 
-// 全部 {:?} でもいいか？テストはどう書ける（文字列として取れる？）？
+// 全部 {:?} でもいいか？テストはどう書ける？
 impl std::fmt::Display for Stmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -127,7 +129,16 @@ impl std::fmt::Display for Stmt {
             Stmt::Let(name, expr) => {
                 write!(f, "(let {} {})", name.lexeme, expr)
             }
-            Stmt::Print(expr) => write!(f, "(print {})", expr),
+            Stmt::Print(expr) => {
+                write!(f, "(print {})", expr)
+            }
+            Stmt::Return(expr) => {
+                if let Some(expr) = expr {
+                    write!(f, "(return {})", expr)
+                } else {
+                    write!(f, "(return)")
+                }
+            }
         }
     }
 }

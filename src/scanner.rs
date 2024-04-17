@@ -76,7 +76,7 @@ impl Scanner {
             '=' => Ok(self.make_token(TokenValue::Equal)),
             ',' => Ok(self.make_token(TokenValue::Comma)),
             c if c.is_ascii_digit() => Ok(self.number()),
-            c if c.is_ascii_alphabetic() => Ok(self.identifier()),
+            c if Self::is_identifier_char(c) => Ok(self.identifier()),
             c => Err(Error::new(
                 self.line,
                 &c.to_string(),
@@ -102,7 +102,7 @@ impl Scanner {
     }
 
     fn identifier(&mut self) -> Token {
-        while !self.is_at_end() && self.peek().is_ascii_alphanumeric() {
+        while !self.is_at_end() && Self::is_identifier_char(self.peek()) {
             self.advance();
         }
         let lexeme = self.lexeme();
@@ -112,8 +112,13 @@ impl Scanner {
             "else" => self.make_token(TokenValue::Else),
             "let" => self.make_token(TokenValue::Let),
             "print" => self.make_token(TokenValue::Print),
+            "return" => self.make_token(TokenValue::Return),
             _ => self.make_token(TokenValue::Identifier),
         }
+    }
+
+    fn is_identifier_char(c: char) -> bool {
+        c.is_ascii_alphanumeric() || c == '_'
     }
 
     fn make_token(&self, val: TokenValue) -> Token {
@@ -146,7 +151,7 @@ mod test {
 
     #[test]
     fn test_scanner() {
-        let src = "function (a, b) { let a = (1 + 2) / 3 * 4;\nif else print a ? 0 : -1; }";
+        let src = "function (a, b) { let a = (1 + 2) / 3 * 4;\nif else return print a ? 0 : -1; }";
         let result = Scanner::new(src.to_string()).scan();
         let expected = vec![
             Token::new(TokenValue::Function, "function".to_string(), 1),
@@ -171,6 +176,7 @@ mod test {
             Token::new(TokenValue::Semicolon, ";".to_string(), 1),
             Token::new(TokenValue::If, "if".to_string(), 2),
             Token::new(TokenValue::Else, "else".to_string(), 2),
+            Token::new(TokenValue::Return, "return".to_string(), 2),
             Token::new(TokenValue::Print, "print".to_string(), 2),
             Token::new(TokenValue::Identifier, "a".to_string(), 2),
             Token::new(TokenValue::Question, "?".to_string(), 2),

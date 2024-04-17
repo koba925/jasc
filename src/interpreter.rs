@@ -6,6 +6,20 @@ use crate::env::Environment;
 use crate::error::Error;
 use crate::token::{Token, TokenValue};
 
+#[derive(Debug, PartialEq)]
+pub enum Runtime {
+    Error(Error),
+    Return(Value),
+}
+
+impl Runtime {
+    fn from_token(token: &Token, msg: &str) -> Runtime {
+        Runtime::Error(Error::from_token(token, msg))
+    }
+}
+
+type Result<T, R = Runtime> = std::result::Result<T, R>;
+
 pub struct Interpreter {
     env: Rc<RefCell<Environment>>,
 }
@@ -23,14 +37,19 @@ impl Interpreter {
         for statement in statements {
             match self.execute(statement) {
                 Ok(v) => value = v,
-                Err(e) => return Err(vec![e]),
+                Err(e) => {
+                    return Err(vec![match e {
+                        Runtime::Error(e) => e,
+                        _ => unreachable!(),
+                    }])
+                }
             }
         }
 
         Ok(value)
     }
 
-    fn execute(&mut self, stmt: Stmt) -> Result<Value, Error> {
+    fn execute(&mut self, stmt: Stmt) -> Result<Value> {
         match stmt {
             Stmt::Block(statements) => self.block(statements),
             Stmt::Expression(expr) => self.evaluate(expr),
@@ -39,10 +58,11 @@ impl Interpreter {
             }
             Stmt::Let(name, expr) => self.let_(name, expr),
             Stmt::Print(expr) => self.print(expr),
+            Stmt::Return(expr) => self.return_(expr),
         }
     }
 
-    fn block(&mut self, statements: Vec<Stmt>) -> Result<Value, Error> {
+    fn block(&mut self, statements: Vec<Stmt>) -> Result<Value> {
         let enclosing = Rc::clone(&self.env);
         self.env = Environment::enclosed_by(&self.env);
 
@@ -67,7 +87,7 @@ impl Interpreter {
         condition: Box<Expr>,
         consequence: Box<Stmt>,
         alternative: Option<Box<Stmt>>,
-    ) -> Result<Value, Error> {
+    ) -> Result<Value> {
         let cond = self.evaluate(condition)?;
         if self.is_truthy(cond) {
             Ok(self.execute(*consequence)?)
@@ -78,18 +98,29 @@ impl Interpreter {
         }
     }
 
-    fn let_(&mut self, name: Token, expr: Box<Expr>) -> Result<Value, Error> {
+    fn let_(&mut self, name: Token, expr: Box<Expr>) -> Result<Value> {
         let val = self.evaluate(expr)?;
-        self.env.borrow_mut().define(&name, val)
+        self.env
+            .borrow_mut()
+            .define(&name, val)
+            .map_err(|e| Runtime::Error(e))
     }
 
-    fn print(&mut self, expr: Box<Expr>) -> Result<Value, Error> {
+    fn print(&mut self, expr: Box<Expr>) -> Result<Value> {
         let result = self.evaluate(expr)?;
         println!("{}", result);
         Ok(Value::Null)
     }
 
-    fn evaluate(&mut self, expr: Box<Expr>) -> Result<Value, Error> {
+    fn return_(&mut self, expr: Option<Box<Expr>>) -> Result<Value> {
+        let mut val = Value::Null;
+        if let Some(expr) = expr {
+            val = self.evaluate(expr)?;
+        }
+        Err(Runtime::Return(val))
+    }
+
+    fn evaluate(&mut self, expr: Box<Expr>) -> Result<Value> {
         match *expr {
             Expr::Assignment(name, expr) => self.assignment(&name, expr),
             Expr::Binary(op, left, right) => self.binary(&op, left, right),
@@ -103,43 +134,46 @@ impl Interpreter {
         }
     }
 
-    fn assignment(&mut self, name: &Token, expr: Box<Expr>) -> Result<Value, Error> {
+    fn assignment(&mut self, name: &Token, expr: Box<Expr>) -> Result<Value> {
         let val = self.evaluate(expr)?;
-        self.env.borrow_mut().assign(&name, val)
+        self.env
+            .borrow_mut()
+            .assign(&name, val)
+            .map_err(|e| Runtime::Error(e))
     }
 
-    fn binary(&mut self, op: &Token, left: Box<Expr>, right: Box<Expr>) -> Result<Value, Error> {
+    fn binary(&mut self, op: &Token, left: Box<Expr>, right: Box<Expr>) -> Result<Value> {
         let left_val = self.evaluate(left)?;
         let right_val = self.evaluate(right)?;
 
         match op.val {
             TokenValue::Plus => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l + r)),
-                _ => Err(Error::from_token(&op, "Operands must be two numbers.")),
+                _ => Err(Runtime::from_token(&op, "Operands must be two numbers.")),
             },
             TokenValue::Minus => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l - r)),
-                _ => Err(Error::from_token(&op, "Operands must be two numbers.")),
+                _ => Err(Runtime::from_token(&op, "Operands must be two numbers.")),
             },
             TokenValue::Star => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l * r)),
-                _ => Err(Error::from_token(&op, "Operands must be two numbers.")),
+                _ => Err(Runtime::from_token(&op, "Operands must be two numbers.")),
             },
             TokenValue::Slash => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l / r)),
-                _ => Err(Error::from_token(&op, "Operands must be two numbers.")),
+                _ => Err(Runtime::from_token(&op, "Operands must be two numbers.")),
             },
-            _ => Err(Error::from_token(&op, "Unknown operation.")),
+            _ => Err(Runtime::from_token(&op, "Unknown operation.")),
         }
     }
 
-    fn call(&mut self, token: &Token, callee: Box<Expr>, args: Vec<Expr>) -> Result<Value, Error> {
+    fn call(&mut self, token: &Token, callee: Box<Expr>, args: Vec<Expr>) -> Result<Value> {
         let func = self.evaluate(callee)?;
         let Value::Function(parameters, statements, env) = func else {
-            return Err(Error::from_token(token, "Callee is not a function."));
+            return Err(Runtime::from_token(token, "Callee is not a function."));
         };
         if parameters.len() != args.len() {
-            return Err(Error::from_token(
+            return Err(Runtime::from_token(
                 token,
                 "Number of the arguments does not match.",
             ));
@@ -149,7 +183,10 @@ impl Interpreter {
 
         for (p, a) in parameters.iter().zip(args) {
             let val = self.evaluate(Box::new(a))?;
-            closure.borrow_mut().define(&p, val)?;
+            closure
+                .borrow_mut()
+                .define(&p, val)
+                .map_err(|e| Runtime::Error(e))?;
         }
 
         let previous = Rc::clone(&self.env);
@@ -160,6 +197,10 @@ impl Interpreter {
         for statement in statements {
             match self.execute(statement) {
                 Ok(v) => value = v,
+                Err(Runtime::Return(v)) => {
+                    self.env = previous;
+                    return Ok(v);
+                }
                 Err(e) => {
                     self.env = previous;
                     return Err(e);
@@ -171,15 +212,15 @@ impl Interpreter {
         Ok(value)
     }
 
-    fn unary(&mut self, op: &Token, right: Box<Expr>) -> Result<Value, Error> {
+    fn unary(&mut self, op: &Token, right: Box<Expr>) -> Result<Value> {
         let right_val = self.evaluate(right)?;
 
         match op.val {
             TokenValue::Minus => match right_val {
                 Value::Number(r) => Ok(Value::Number(-r)),
-                _ => Err(Error::from_token(&op, "Operand must be a number.")),
+                _ => Err(Runtime::from_token(&op, "Operand must be a number.")),
             },
-            _ => Err(Error::from_token(&op, "Unknown operation.")),
+            _ => Err(Runtime::from_token(&op, "Unknown operation.")),
         }
     }
 
@@ -189,7 +230,7 @@ impl Interpreter {
         first: Box<Expr>,
         second: Box<Expr>,
         third: Box<Expr>,
-    ) -> Result<Value, Error> {
+    ) -> Result<Value> {
         assert_eq!(op.val, TokenValue::Question);
 
         let condition = self.evaluate(first)?;
@@ -200,11 +241,11 @@ impl Interpreter {
         }
     }
 
-    fn variable(&self, name: &Token) -> Result<Value, Error> {
-        self.env.borrow().get(name)
+    fn variable(&self, name: &Token) -> Result<Value> {
+        self.env.borrow().get(name).map_err(|e| Runtime::Error(e))
     }
 
-    fn function(&mut self, parameters: Vec<Token>, statements: Vec<Stmt>) -> Result<Value, Error> {
+    fn function(&mut self, parameters: Vec<Token>, statements: Vec<Stmt>) -> Result<Value> {
         Ok(Value::Function(
             parameters,
             statements,

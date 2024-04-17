@@ -39,6 +39,7 @@ impl Parser {
             TokenValue::If => self.if_statement(),
             TokenValue::Let => self.let_statement(),
             TokenValue::Print => self.print_statement(),
+            TokenValue::Return => self.return_statement(),
             _ => self.expression_statement(),
         }
         .or_else(|e| {
@@ -100,6 +101,16 @@ impl Parser {
         let expr = self.expression()?;
         self.consume(TokenValue::Semicolon, "Semicolon expected.")?;
         Ok(Stmt::Print(Box::new(expr)))
+    }
+
+    fn return_statement(&mut self) -> Result<Stmt> {
+        let mut expr = None;
+        self.advance();
+        if self.previous().val != TokenValue::Semicolon {
+            expr = Some(Box::new(self.expression()?));
+        }
+        self.consume(TokenValue::Semicolon, "Semicolon expected.")?;
+        Ok(Stmt::Return(expr))
     }
 
     fn expression_statement(&mut self) -> Result<Stmt> {
