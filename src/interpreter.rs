@@ -84,8 +84,8 @@ impl Interpreter {
 
     fn if_(
         &mut self,
-        condition: &Box<Expr>,
-        consequence: &Box<Stmt>,
+        condition: &Expr,
+        consequence: &Stmt,
         alternative: &Option<Box<Stmt>>,
     ) -> Result<Value> {
         let cond = self.evaluate(condition)?;
@@ -98,7 +98,7 @@ impl Interpreter {
         }
     }
 
-    fn let_(&mut self, name: &Token, expr: &Box<Expr>) -> Result<Value> {
+    fn let_(&mut self, name: &Token, expr: &Expr) -> Result<Value> {
         let val = self.evaluate(expr)?;
         self.env
             .borrow_mut()
@@ -106,7 +106,7 @@ impl Interpreter {
             .map_err(|e| Runtime::Error(e))
     }
 
-    fn print(&mut self, expr: &Box<Expr>) -> Result<Value> {
+    fn print(&mut self, expr: &Expr) -> Result<Value> {
         let result = self.evaluate(expr)?;
         println!("{}", result);
         Ok(Value::Null)
@@ -120,23 +120,21 @@ impl Interpreter {
         Err(Runtime::Return(val))
     }
 
-    fn evaluate(&mut self, expr: &Box<Expr>) -> Result<Value> {
-        match **expr {
-            Expr::Assignment(ref name, ref expr) => self.assignment(name, expr),
-            Expr::Binary(ref op, ref left, ref right) => self.binary(op, left, right),
-            Expr::Call(ref token, ref callee, ref args) => self.call(token, callee, args),
-            Expr::Function(ref parameters, ref statements) => self.function(parameters, statements),
-            Expr::Grouping(ref expr) => self.evaluate(&expr),
-            Expr::Literal(ref value) => Ok(value.clone()),
-            Expr::Ternary(ref op, ref first, ref second, ref third) => {
-                self.ternary(op, first, second, third)
-            }
-            Expr::Unary(ref op, ref right) => self.unary(op, right),
-            Expr::Variable(ref name) => self.variable(name),
+    fn evaluate(&mut self, expr: &Expr) -> Result<Value> {
+        match expr {
+            Expr::Assignment(name, expr) => self.assignment(name, expr),
+            Expr::Binary(op, left, right) => self.binary(op, left, right),
+            Expr::Call(token, callee, args) => self.call(token, callee, args),
+            Expr::Function(parameters, statements) => self.function(parameters, statements),
+            Expr::Grouping(expr) => self.evaluate(&expr),
+            Expr::Literal(value) => Ok(value.clone()),
+            Expr::Ternary(op, first, second, third) => self.ternary(op, first, second, third),
+            Expr::Unary(op, right) => self.unary(op, right),
+            Expr::Variable(name) => self.variable(name),
         }
     }
 
-    fn assignment(&mut self, name: &Token, expr: &Box<Expr>) -> Result<Value> {
+    fn assignment(&mut self, name: &Token, expr: &Expr) -> Result<Value> {
         let val = self.evaluate(expr)?;
         self.env
             .borrow_mut()
@@ -144,7 +142,7 @@ impl Interpreter {
             .map_err(|e| Runtime::Error(e))
     }
 
-    fn binary(&mut self, op: &Token, left: &Box<Expr>, right: &Box<Expr>) -> Result<Value> {
+    fn binary(&mut self, op: &Token, left: &Expr, right: &Expr) -> Result<Value> {
         let left_val = self.evaluate(left)?;
         let right_val = self.evaluate(right)?;
 
@@ -169,7 +167,7 @@ impl Interpreter {
         }
     }
 
-    fn call(&mut self, token: &Token, callee: &Box<Expr>, args: &Vec<Expr>) -> Result<Value> {
+    fn call(&mut self, token: &Token, callee: &Expr, args: &Vec<Expr>) -> Result<Value> {
         let func = self.evaluate(callee)?;
         let Value::Function(parameters, statements, env) = func else {
             return Err(Runtime::from_token(token, "Callee is not a function."));
@@ -184,7 +182,7 @@ impl Interpreter {
         let closure = Environment::enclosed_by(&env);
 
         for (p, a) in parameters.iter().zip(args) {
-            let val = self.evaluate(&Box::new(a.clone()))?;
+            let val = self.evaluate(&a)?;
             closure
                 .borrow_mut()
                 .define(&p, val)
@@ -196,8 +194,8 @@ impl Interpreter {
 
         let mut result = Ok(Value::Null);
 
-        for ref statement in statements {
-            match self.execute(statement) {
+        for statement in statements {
+            match self.execute(&statement) {
                 Ok(v) => result = Ok(v),
                 Err(Runtime::Return(v)) => {
                     result = Ok(v);
@@ -214,7 +212,7 @@ impl Interpreter {
         result
     }
 
-    fn unary(&mut self, op: &Token, right: &Box<Expr>) -> Result<Value> {
+    fn unary(&mut self, op: &Token, right: &Expr) -> Result<Value> {
         let right_val = self.evaluate(right)?;
 
         match op.val {
@@ -226,13 +224,7 @@ impl Interpreter {
         }
     }
 
-    fn ternary(
-        &mut self,
-        op: &Token,
-        first: &Box<Expr>,
-        second: &Box<Expr>,
-        third: &Box<Expr>,
-    ) -> Result<Value> {
+    fn ternary(&mut self, op: &Token, first: &Expr, second: &Expr, third: &Expr) -> Result<Value> {
         assert_eq!(op.val, TokenValue::Question);
 
         let condition = self.evaluate(first)?;
