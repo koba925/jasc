@@ -103,6 +103,7 @@ pub enum Stmt {
     Let(Token, Box<Expr>),
     Print(Box<Expr>),
     Return(Option<Box<Expr>>),
+    While(Box<Expr>, Box<Stmt>),
 }
 
 // 全部 {:?} でもいいか？テストはどう書ける？
@@ -116,7 +117,7 @@ impl std::fmt::Display for Stmt {
             Stmt::If(condition, consequence, alternative) => {
                 write!(
                     f,
-                    "(if ({}) {}{})",
+                    "(if {} {}{})",
                     condition,
                     consequence,
                     if let Some(alt) = alternative {
@@ -138,6 +139,9 @@ impl std::fmt::Display for Stmt {
                 } else {
                     write!(f, "(return)")
                 }
+            }
+            Stmt::While(condition, statement) => {
+                write!(f, "(while {} {})", condition, statement)
             }
         }
     }

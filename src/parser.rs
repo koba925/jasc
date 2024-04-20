@@ -40,6 +40,7 @@ impl Parser {
             TokenValue::Let => self.let_statement(),
             TokenValue::Print => self.print_statement(),
             TokenValue::Return => self.return_statement(),
+            TokenValue::While => self.while_statement(),
             _ => self.expression_statement(),
         }
         .or_else(|e| {
@@ -111,6 +112,15 @@ impl Parser {
         }
         self.consume(TokenValue::Semicolon, "Semicolon expected.")?;
         Ok(Stmt::Return(expr))
+    }
+
+    fn while_statement(&mut self) -> Result<Stmt> {
+        self.advance();
+        self.consume(TokenValue::LeftParen, "Left paren expected.")?;
+        let condition = self.expression()?;
+        self.consume(TokenValue::RightParen, "Right paren expected.")?;
+        let statement = self.statement()?;
+        Ok(Stmt::While(Box::new(condition), Box::new(statement)))
     }
 
     fn expression_statement(&mut self) -> Result<Stmt> {

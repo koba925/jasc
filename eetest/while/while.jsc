@@ -1,0 +1,7 @@
+let a = 2;
+while (a) {
+    print a;
+    a = a - 1;
+}
+//out 2
+//out 1

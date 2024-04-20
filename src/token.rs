@@ -22,6 +22,7 @@ pub enum TokenValue {
     Let,
     Print,
     Return,
+    While,
     EOF,
 }
 
@@ -50,6 +51,7 @@ impl std::fmt::Display for TokenValue {
             TokenValue::Let => write!(f, "let"),
             TokenValue::Print => write!(f, "print"),
             TokenValue::Return => write!(f, "return"),
+            TokenValue::While => write!(f, "while"),
             TokenValue::EOF => write!(f, "end"),
         }
     }

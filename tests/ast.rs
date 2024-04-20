@@ -84,14 +84,20 @@ fn function() {
 
 #[test]
 fn if_() {
-    run::parse("if (1) 2;", "(if (1) (expression 2))");
-    run::parse("if (1) {2;}", "(if (1) (block (expression 2)))");
-    run::parse(
-        "if (1) 2; else 3;",
-        "(if (1) (expression 2) (expression 3))",
-    );
+    run::parse("if (1 + 1) 2 + 2;", "(if (+ 1 1) (expression (+ 2 2)))");
+    run::parse("if (1) {2;}", "(if 1 (block (expression 2)))");
+    run::parse("if (1) 2; else 3;", "(if 1 (expression 2) (expression 3))");
     run::parse(
         "if (1) {2;} else {3;}",
-        "(if (1) (block (expression 2)) (block (expression 3)))",
+        "(if 1 (block (expression 2)) (block (expression 3)))",
+    );
+}
+
+// TODO: テスト関数・ファイルの名前を変更する
+#[test]
+fn test_while() {
+    run::parse(
+        "while (1 + 1) 2 + 2;",
+        "(while (+ 1 1) (expression (+ 2 2)))",
     );
 }

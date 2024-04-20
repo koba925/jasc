@@ -35,7 +35,7 @@ impl Interpreter {
         let mut value = Value::Null;
 
         for statement in statements {
-            match self.execute(statement) {
+            match self.execute(Box::new(statement)) {
                 Ok(v) => value = v,
                 Err(e) => {
                     return Err(vec![match e {
@@ -49,8 +49,9 @@ impl Interpreter {
         Ok(value)
     }
 
-    fn execute(&mut self, stmt: Stmt) -> Result<Value> {
-        match stmt {
+    // TODO: statement処理の関数名を変える
+    fn execute(&mut self, stmt: Box<Stmt>) -> Result<Value> {
+        match *stmt {
             Stmt::Block(statements) => self.block(statements),
             Stmt::Expression(expr) => self.evaluate(expr),
             Stmt::If(condition, consequence, alternative) => {
@@ -59,6 +60,7 @@ impl Interpreter {
             Stmt::Let(name, expr) => self.let_(name, expr),
             Stmt::Print(expr) => self.print(expr),
             Stmt::Return(expr) => self.return_(expr),
+            Stmt::While(condition, statement) => self.while_(condition, statement),
         }
     }
 
@@ -69,7 +71,7 @@ impl Interpreter {
         let mut value = Value::Null;
 
         for statement in statements {
-            match self.execute(statement) {
+            match self.execute(Box::new(statement)) {
                 Ok(v) => value = v,
                 Err(e) => {
                     self.env = enclosing;
@@ -89,10 +91,10 @@ impl Interpreter {
         alternative: Option<Box<Stmt>>,
     ) -> Result<Value> {
         let cond = self.evaluate(condition)?;
-        if self.is_truthy(cond) {
-            Ok(self.execute(*consequence)?)
+        if Self::is_truthy(&cond) {
+            Ok(self.execute(consequence)?)
         } else if let Some(alt) = alternative {
-            Ok(self.execute(*alt)?)
+            Ok(self.execute(alt)?)
         } else {
             Ok(Value::Null)
         }
@@ -118,6 +120,14 @@ impl Interpreter {
             val = self.evaluate(expr)?;
         }
         Err(Runtime::Return(val))
+    }
+
+    fn while_(&mut self, condition: Box<Expr>, statement: Box<Stmt>) -> Result<Value> {
+        let mut value = Value::Null;
+        while Self::is_truthy(&self.evaluate(condition.clone())?) {
+            value = self.execute(statement.clone())?;
+        }
+        Ok(value)
     }
 
     fn evaluate(&mut self, expr: Box<Expr>) -> Result<Value> {
@@ -195,7 +205,7 @@ impl Interpreter {
         let mut result = Ok(Value::Null);
 
         for statement in statements {
-            match self.execute(statement) {
+            match self.execute(Box::new(statement)) {
                 Ok(v) => result = Ok(v),
                 Err(Runtime::Return(v)) => {
                     result = Ok(v);
@@ -234,7 +244,7 @@ impl Interpreter {
         assert_eq!(op.val, TokenValue::Question);
 
         let condition = self.evaluate(first)?;
-        if self.is_truthy(condition) {
+        if Self::is_truthy(&condition) {
             self.evaluate(second)
         } else {
             self.evaluate(third)
@@ -253,9 +263,9 @@ impl Interpreter {
         ))
     }
 
-    fn is_truthy(&self, val: Value) -> bool {
+    fn is_truthy(val: &Value) -> bool {
         match val {
-            Value::Number(n) => n != 0.0,
+            Value::Number(n) => n != &0.0,
             Value::Null | Value::Undefined => false,
             _ => true,
         }
