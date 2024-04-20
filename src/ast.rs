@@ -98,6 +98,7 @@ impl std::fmt::Display for Expr {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     Block(Vec<Stmt>),
+    Break,
     Expression(Box<Expr>),
     If(Box<Expr>, Box<Stmt>, Option<Box<Stmt>>),
     Let(Token, Box<Expr>),
@@ -113,6 +114,7 @@ impl std::fmt::Display for Stmt {
             Stmt::Block(statements) => {
                 write!(f, "(block {})", stringify_statements(statements))
             }
+            Stmt::Break => write!(f, "(break)"),
             Stmt::Expression(expr) => write!(f, "(expression {})", expr),
             Stmt::If(condition, consequence, alternative) => {
                 write!(

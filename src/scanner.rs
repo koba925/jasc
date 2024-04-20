@@ -114,6 +114,7 @@ impl Scanner {
             "print" => self.make_token(TokenValue::Print),
             "return" => self.make_token(TokenValue::Return),
             "while" => self.make_token(TokenValue::While),
+            "break" => self.make_token(TokenValue::Break),
             _ => self.make_token(TokenValue::Identifier),
         }
     }
@@ -153,7 +154,7 @@ mod test {
     #[test]
     fn test_scanner() {
         let src =
-            "function (a, b) { let a = (1 + 2) / 3 * 4;\nif else return print while a ? 0 : -1; }";
+            "function (a, b) { let a = (1 + 2) / 3 * 4;\nif else return print while break a ? 0 : -1; }";
         let result = Scanner::new(src.to_string()).scan();
         let expected = vec![
             Token::new(TokenValue::Function, "function".to_string(), 1),
@@ -181,6 +182,7 @@ mod test {
             Token::new(TokenValue::Return, "return".to_string(), 2),
             Token::new(TokenValue::Print, "print".to_string(), 2),
             Token::new(TokenValue::While, "while".to_string(), 2),
+            Token::new(TokenValue::Break, "break".to_string(), 2),
             Token::new(TokenValue::Identifier, "a".to_string(), 2),
             Token::new(TokenValue::Question, "?".to_string(), 2),
             Token::new(TokenValue::Number(0.0), "0".to_string(), 2),

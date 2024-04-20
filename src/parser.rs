@@ -36,6 +36,7 @@ impl Parser {
     fn statement(&mut self) -> Result<Stmt> {
         match self.peek().val {
             TokenValue::LeftBrace => self.block_statement(),
+            TokenValue::Break => self.break_statement(),
             TokenValue::If => self.if_statement(),
             TokenValue::Let => self.let_statement(),
             TokenValue::Print => self.print_statement(),
@@ -62,6 +63,12 @@ impl Parser {
             statements.push(self.statement()?)
         }
         Ok(statements)
+    }
+
+    fn break_statement(&mut self) -> Result<Stmt> {
+        self.advance();
+        self.consume(TokenValue::Semicolon, "Semicolon expected.")?;
+        Ok(Stmt::Break)
     }
 
     fn if_statement(&mut self) -> Result<Stmt> {

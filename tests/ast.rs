@@ -101,3 +101,9 @@ fn test_while() {
         "(while (+ 1 1) (expression (+ 2 2)))",
     );
 }
+
+#[test]
+fn test_break() {
+    run::parse("while (1) break;", "(while 1 (break))");
+    run::parse("while (1) { break; }", "(while 1 (block (break)))");
+}

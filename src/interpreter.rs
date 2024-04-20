@@ -8,6 +8,7 @@ use crate::token::{Token, TokenValue};
 
 #[derive(Debug, PartialEq)]
 pub enum Runtime {
+    Break,
     Error(Error),
     Return(Value),
 }
@@ -52,6 +53,7 @@ impl Interpreter {
     fn execute(&mut self, stmt: &Stmt) -> Result<Value> {
         match stmt {
             Stmt::Block(statements) => self.block(statements),
+            Stmt::Break => self.break_(),
             Stmt::Expression(expr) => self.evaluate(expr),
             Stmt::If(condition, consequence, alternative) => {
                 self.if_(condition, consequence, alternative)
@@ -63,6 +65,7 @@ impl Interpreter {
         }
     }
 
+    // TODO: callとコードを共有できないか
     fn block(&mut self, statements: &Vec<Stmt>) -> Result<Value> {
         let enclosing = Rc::clone(&self.env);
         self.env = Environment::enclosed_by(&self.env);
@@ -81,6 +84,10 @@ impl Interpreter {
 
         self.env = enclosing;
         Ok(value)
+    }
+
+    fn break_(&mut self) -> Result<Value> {
+        Err(Runtime::Break)
     }
 
     fn if_(
@@ -121,12 +128,24 @@ impl Interpreter {
         Err(Runtime::Return(val))
     }
 
+    // TODO: break <val>; という形を許してもいいかもしれない
     fn while_(&mut self, condition: &Expr, statement: &Stmt) -> Result<Value> {
-        let mut value = Value::Null;
+        let mut result = Ok(Value::Null);
         while Self::is_truthy(&self.evaluate(condition)?) {
-            value = self.execute(statement)?;
+            // TODO: 短く書けないか？map_errとかで
+            match self.execute(&statement) {
+                Ok(v) => result = Ok(v),
+                Err(Runtime::Break) => {
+                    result = Ok(Value::Null);
+                    break;
+                }
+                Err(e) => {
+                    result = Err(e);
+                    break;
+                }
+            }
         }
-        Ok(value)
+        result
     }
 
     fn evaluate(&mut self, expr: &Expr) -> Result<Value> {
