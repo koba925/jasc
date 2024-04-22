@@ -14,11 +14,11 @@ fn vec_to_str<T: Display>(v: &Vec<T>) -> String {
         if first {
             first = false;
         } else {
-            s.push_str(" ");
+            s.push(' ');
         }
         s.push_str(&format!("{}", e));
     }
-    s.push_str(")");
+    s.push(')');
     s
 }
 
@@ -120,7 +120,7 @@ impl std::fmt::Display for Stmt {
                     condition,
                     consequence,
                     if let Some(alt) = alternative {
-                        format!(" {}", alt.to_string())
+                        format!(" {}", alt)
                     } else {
                         "".to_string()
                     }

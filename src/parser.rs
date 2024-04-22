@@ -42,9 +42,9 @@ impl Parser {
             TokenValue::Return => self.return_statement(),
             _ => self.expression_statement(),
         }
-        .or_else(|e| {
+        .map_err(|e| {
             self.synchronize();
-            Err(e)
+            e
         })
     }
 
@@ -231,7 +231,7 @@ impl Parser {
         let token = self.advance();
 
         match &token.val {
-            TokenValue::Number(n) => Ok(Expr::Literal(Value::Number(n.clone()))),
+            TokenValue::Number(n) => Ok(Expr::Literal(Value::Number(*n))),
             TokenValue::LeftParen => {
                 let expr = self.expression()?;
                 self.consume(TokenValue::RightParen, "Right paren expected")?;

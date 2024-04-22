@@ -7,4 +7,5 @@
         "editor.maxTokenizationLineLength": 2500,
         "editor.formatOnSave": false,
     },
+    "rust-analyzer.check.command": "clippy",
 }
