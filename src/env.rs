@@ -6,7 +6,7 @@ use crate::ast::Value;
 use crate::error::Error;
 use crate::token::Token;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Environment {
     vars: HashMap<String, Value>,
     enclosing: Option<Rc<RefCell<Environment>>>,

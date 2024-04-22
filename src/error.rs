@@ -24,7 +24,7 @@ impl Error {
     }
 
     pub fn report(&self) {
-        if self.location == "" {
+        if self.location.is_empty() {
             eprintln!("[line {}] Error: {}", self.line, self.msg)
         } else {
             eprintln!(

@@ -28,7 +28,7 @@ pub struct Interpreter {
 impl Interpreter {
     pub fn new() -> Interpreter {
         Interpreter {
-            env: Rc::new(RefCell::new(Environment::new())),
+            env: Rc::new(RefCell::new(Default::default())),
         }
     }
 
@@ -110,8 +110,8 @@ impl Interpreter {
         let val = self.evaluate(expr)?;
         self.env
             .borrow_mut()
-            .define(&name, val)
-            .map_err(|e| Runtime::Error(e))
+            .define(name, val)
+            .map_err(Runtime::Error)
     }
 
     fn print(&mut self, expr: &Expr) -> Result<Value> {
@@ -150,7 +150,7 @@ impl Interpreter {
             Expr::Binary(op, left, right) => self.binary(op, left, right),
             Expr::Call(token, callee, args) => self.call(token, callee, args),
             Expr::Function(parameters, statements) => self.function(parameters, statements),
-            Expr::Grouping(expr) => self.evaluate(&expr),
+            Expr::Grouping(expr) => self.evaluate(expr),
             Expr::Literal(value) => Ok(value.clone()),
             Expr::Ternary(op, first, second, third) => self.ternary(op, first, second, third),
             Expr::Unary(op, right) => self.unary(op, right),
@@ -162,8 +162,8 @@ impl Interpreter {
         let val = self.evaluate(expr)?;
         self.env
             .borrow_mut()
-            .assign(&name, val)
-            .map_err(|e| Runtime::Error(e))
+            .assign(name, val)
+            .map_err(Runtime::Error)
     }
 
     fn binary(&mut self, op: &Token, left: &Expr, right: &Expr) -> Result<Value> {
@@ -173,21 +173,21 @@ impl Interpreter {
         match op.val {
             TokenValue::Plus => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l + r)),
-                _ => Err(Runtime::from_token(&op, "Operands must be two numbers.")),
+                _ => Err(Runtime::from_token(op, "Operands must be two numbers.")),
             },
             TokenValue::Minus => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l - r)),
-                _ => Err(Runtime::from_token(&op, "Operands must be two numbers.")),
+                _ => Err(Runtime::from_token(op, "Operands must be two numbers.")),
             },
             TokenValue::Star => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l * r)),
-                _ => Err(Runtime::from_token(&op, "Operands must be two numbers.")),
+                _ => Err(Runtime::from_token(op, "Operands must be two numbers.")),
             },
             TokenValue::Slash => match (left_val, right_val) {
                 (Value::Number(l), Value::Number(r)) => Ok(Value::Number(l / r)),
-                _ => Err(Runtime::from_token(&op, "Operands must be two numbers.")),
+                _ => Err(Runtime::from_token(op, "Operands must be two numbers.")),
             },
-            _ => Err(Runtime::from_token(&op, "Unknown operation.")),
+            _ => Err(Runtime::from_token(op, "Unknown operation.")),
         }
     }
 
@@ -206,11 +206,11 @@ impl Interpreter {
         let closure = Environment::enclosed_by(&env);
 
         for (p, a) in parameters.iter().zip(args) {
-            let val = self.evaluate(&a)?;
+            let val = self.evaluate(a)?;
             closure
                 .borrow_mut()
-                .define(&p, val)
-                .map_err(|e| Runtime::Error(e))?;
+                .define(p, val)
+                .map_err(Runtime::Error)?;
         }
 
         let previous = Rc::clone(&self.env);
@@ -238,9 +238,9 @@ impl Interpreter {
         match op.val {
             TokenValue::Minus => match right_val {
                 Value::Number(r) => Ok(Value::Number(-r)),
-                _ => Err(Runtime::from_token(&op, "Operand must be a number.")),
+                _ => Err(Runtime::from_token(op, "Operand must be a number.")),
             },
-            _ => Err(Runtime::from_token(&op, "Unknown operation.")),
+            _ => Err(Runtime::from_token(op, "Unknown operation.")),
         }
     }
 
@@ -256,13 +256,13 @@ impl Interpreter {
     }
 
     fn variable(&self, name: &Token) -> Result<Value> {
-        self.env.borrow().get(name).map_err(|e| Runtime::Error(e))
+        self.env.borrow().get(name).map_err(Runtime::Error)
     }
 
-    fn function(&mut self, parameters: &Vec<Token>, statements: &Vec<Stmt>) -> Result<Value> {
+    fn function(&mut self, parameters: &[Token], statements: &[Stmt]) -> Result<Value> {
         Ok(Value::Function(
-            parameters.clone(),
-            statements.clone(),
+            parameters.to_owned(),
+            statements.to_owned(),
             Rc::clone(&self.env),
         ))
     }
