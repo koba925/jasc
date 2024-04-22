@@ -128,17 +128,13 @@ impl Interpreter {
         Err(Runtime::Return(val))
     }
 
-    // TODO: break <val>; という形を許してもいいかもしれない
+    // TODO: break <val>; という形を許してもいいかもしれない 使い道は？
     fn while_(&mut self, condition: &Expr, statement: &Stmt) -> Result<Value> {
         let mut result = Ok(Value::Null);
         while Self::is_truthy(&self.evaluate(condition)?) {
-            // TODO: 短く書けないか？map_errとかで
             match self.execute(&statement) {
                 Ok(v) => result = Ok(v),
-                Err(Runtime::Break) => {
-                    result = Ok(Value::Null);
-                    break;
-                }
+                Err(Runtime::Break) => break,
                 Err(e) => {
                     result = Err(e);
                     break;
@@ -223,16 +219,12 @@ impl Interpreter {
         let mut result = Ok(Value::Null);
 
         for statement in statements {
-            match self.execute(&statement) {
-                Ok(v) => result = Ok(v),
-                Err(Runtime::Return(v)) => {
-                    result = Ok(v);
-                    break;
-                }
-                Err(e) => {
-                    result = Err(e);
-                    break;
-                }
+            result = self.execute(&statement);
+            if let Err(Runtime::Return(v)) = result {
+                result = Ok(v);
+                break;
+            } else if let Err(_) = result {
+                break;
             }
         }
 
