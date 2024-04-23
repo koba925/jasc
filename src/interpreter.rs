@@ -32,10 +32,10 @@ impl Interpreter {
         }
     }
 
-    pub fn interpret(&mut self, statements: Vec<Stmt>) -> Result<Value, Vec<Error>> {
+    pub fn interpret(&mut self, statements: &[Stmt]) -> Result<Value, Vec<Error>> {
         let mut value = Value::Null;
 
-        for ref statement in statements {
+        for statement in statements {
             match self.execute(statement) {
                 Ok(v) => value = v,
                 Err(e) => {
