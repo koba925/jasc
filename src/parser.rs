@@ -4,15 +4,15 @@ use crate::ast::{Expr, Stmt, Value};
 use crate::error::Error;
 use crate::token::{Token, TokenValue};
 
-pub struct Parser {
-    tokens: Vec<Token>,
+pub struct Parser<'a> {
+    tokens: &'a [Token],
     current: usize,
 }
 
 type Result<T, E = Error> = std::result::Result<T, E>;
 
-impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Parser {
+impl Parser<'_> {
+    pub fn new(tokens: &[Token]) -> Parser {
         Parser { tokens, current: 0 }
     }
 
@@ -296,6 +296,7 @@ impl Parser {
         Ok(parameters)
     }
 
+    // TODO: 場所を変える、advance()を消す
     fn synchronize(&mut self) {
         // self.advance();
         while !self.is_at_end() {
