@@ -66,9 +66,13 @@ impl Parser {
     }
 
     fn break_statement(&mut self) -> Result<Stmt> {
+        let mut expr = None;
         self.advance();
+        if self.peek().val != TokenValue::Semicolon {
+            expr = Some(Box::new(self.expression()?));
+        }
         self.consume(TokenValue::Semicolon, "Semicolon expected.")?;
-        Ok(Stmt::Break)
+        Ok(Stmt::Break(expr))
     }
 
     fn if_statement(&mut self) -> Result<Stmt> {
@@ -114,7 +118,7 @@ impl Parser {
     fn return_statement(&mut self) -> Result<Stmt> {
         let mut expr = None;
         self.advance();
-        if self.previous().val != TokenValue::Semicolon {
+        if self.peek().val != TokenValue::Semicolon {
             expr = Some(Box::new(self.expression()?));
         }
         self.consume(TokenValue::Semicolon, "Semicolon expected.")?;

@@ -19,5 +19,9 @@ print ff()(5);
 //out 6
 print function () { return 7; 8;}();
 //out 7
-// function() { print 9; return; print 10;};
-// out 9
+function() {
+    print 9;
+    return; 
+    print 10;
+}();
+//out 9

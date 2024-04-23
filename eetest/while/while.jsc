@@ -10,8 +10,10 @@ a = 3;
 while (1) {
     print a;
     a = a - 1;
-    if (a) {} else break;
+    if (a) {} else break a;
 }
 //out 3
 //out 2
 //out 1
+//out 0
+

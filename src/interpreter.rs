@@ -8,7 +8,7 @@ use crate::token::{Token, TokenValue};
 
 #[derive(Debug, PartialEq)]
 pub enum Runtime {
-    Break,
+    Break(Value),
     Error(Error),
     Return(Value),
 }
@@ -53,7 +53,7 @@ impl Interpreter {
     fn execute(&mut self, stmt: &Stmt) -> Result<Value> {
         match stmt {
             Stmt::Block(statements) => self.block(statements),
-            Stmt::Break => self.break_(),
+            Stmt::Break(expr) => self.break_(expr),
             Stmt::Expression(expr) => self.evaluate(expr),
             Stmt::If(condition, consequence, alternative) => {
                 self.if_(condition, consequence, alternative)
@@ -86,8 +86,12 @@ impl Interpreter {
         Ok(value)
     }
 
-    fn break_(&mut self) -> Result<Value> {
-        Err(Runtime::Break)
+    fn break_(&mut self, expr: &Option<Box<Expr>>) -> Result<Value> {
+        let mut val = Value::Null;
+        if let Some(expr) = expr {
+            val = self.evaluate(expr)?;
+        }
+        Err(Runtime::Break(val))
     }
 
     fn if_(
@@ -120,6 +124,7 @@ impl Interpreter {
         Ok(Value::Null)
     }
 
+    // TODO: トップレベルでreturnしたら値を返して正常終了
     fn return_(&mut self, expr: &Option<Box<Expr>>) -> Result<Value> {
         let mut val = Value::Null;
         if let Some(expr) = expr {
@@ -128,17 +133,15 @@ impl Interpreter {
         Err(Runtime::Return(val))
     }
 
-    // TODO: break <val>; という形を許してもいいかもしれない 使い道は？
     fn while_(&mut self, condition: &Expr, statement: &Stmt) -> Result<Value> {
         let mut result = Ok(Value::Null);
         while Self::is_truthy(&self.evaluate(condition)?) {
-            match self.execute(&statement) {
-                Ok(v) => result = Ok(v),
-                Err(Runtime::Break) => break,
-                Err(e) => {
-                    result = Err(e);
-                    break;
-                }
+            result = self.execute(&statement);
+            if let Err(Runtime::Break(val)) = result {
+                result = Ok(val);
+                break;
+            } else if let Err(_) = result {
+                break;
             }
         }
         result

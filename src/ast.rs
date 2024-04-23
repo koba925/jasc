@@ -59,7 +59,7 @@ pub enum Expr {
     Variable(Token),
 }
 
-// 全部 {:?} でもいいか？テストはどう書ける？
+// TODO: 全部 {:?} でもいいか？テストはどう書ける？
 impl std::fmt::Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -98,7 +98,7 @@ impl std::fmt::Display for Expr {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Stmt {
     Block(Vec<Stmt>),
-    Break,
+    Break(Option<Box<Expr>>),
     Expression(Box<Expr>),
     If(Box<Expr>, Box<Stmt>, Option<Box<Stmt>>),
     Let(Token, Box<Expr>),
@@ -114,7 +114,13 @@ impl std::fmt::Display for Stmt {
             Stmt::Block(statements) => {
                 write!(f, "(block {})", stringify_statements(statements))
             }
-            Stmt::Break => write!(f, "(break)"),
+            Stmt::Break(expr) => {
+                if let Some(expr) = expr {
+                    write!(f, "(break {})", expr)
+                } else {
+                    write!(f, "(break)")
+                }
+            }
             Stmt::Expression(expr) => write!(f, "(expression {})", expr),
             Stmt::If(condition, consequence, alternative) => {
                 write!(
