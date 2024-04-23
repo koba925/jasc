@@ -136,11 +136,11 @@ impl Interpreter {
     fn while_(&mut self, condition: &Expr, statement: &Stmt) -> Result<Value> {
         let mut result = Ok(Value::Null);
         while Self::is_truthy(&self.evaluate(condition)?) {
-            result = self.execute(&statement);
+            result = self.execute(statement);
             if let Err(Runtime::Break(val)) = result {
                 result = Ok(val);
                 break;
-            } else if let Err(_) = result {
+            } else if result.is_err() {
                 break;
             }
         }
@@ -226,7 +226,7 @@ impl Interpreter {
             if let Err(Runtime::Return(v)) = result {
                 result = Ok(v);
                 break;
-            } else if let Err(_) = result {
+            } else if result.is_err() {
                 break;
             }
         }

@@ -13,13 +13,6 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn new() -> Environment {
-        Environment {
-            vars: HashMap::new(),
-            enclosing: None,
-        }
-    }
-
     pub fn enclosed_by(enclosing: &Rc<RefCell<Environment>>) -> Rc<RefCell<Environment>> {
         Rc::new(RefCell::new(Environment {
             vars: HashMap::new(),
