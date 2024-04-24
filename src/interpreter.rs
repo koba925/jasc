@@ -33,21 +33,21 @@ impl Interpreter {
     }
 
     pub fn interpret(&mut self, statements: &[Stmt]) -> Result<Value, Vec<Error>> {
-        let mut value = Value::Null;
+        let mut result = Ok(Value::Null);
 
         for statement in statements {
-            match self.execute(statement) {
-                Ok(v) => value = v,
-                Err(e) => {
-                    return Err(vec![match e {
-                        Runtime::Error(e) => e,
-                        _ => unreachable!(),
-                    }])
-                }
+            result = self.execute(statement);
+            if result.is_err() {
+                break;
             }
         }
 
-        Ok(value)
+        result.map_err(|e| {
+            vec![match e {
+                Runtime::Error(e) => e,
+                _ => unreachable!(),
+            }]
+        })
     }
 
     fn execute(&mut self, stmt: &Stmt) -> Result<Value> {
