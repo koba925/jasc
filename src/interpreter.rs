@@ -65,25 +65,21 @@ impl Interpreter {
         }
     }
 
-    // TODO: callとコードを共有できないか
     fn block(&mut self, statements: &Vec<Stmt>) -> Result<Value> {
         let enclosing = Rc::clone(&self.env);
         self.env = Environment::enclosed_by(&self.env);
 
-        let mut value = Value::Null;
+        let mut result = Ok(Value::Null);
 
         for statement in statements {
-            match self.execute(statement) {
-                Ok(v) => value = v,
-                Err(e) => {
-                    self.env = enclosing;
-                    return Err(e);
-                }
+            result = self.execute(statement);
+            if result.is_err() {
+                break;
             }
         }
 
         self.env = enclosing;
-        Ok(value)
+        result
     }
 
     fn break_(&mut self, expr: &Option<Box<Expr>>) -> Result<Value> {
