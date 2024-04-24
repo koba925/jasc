@@ -50,6 +50,20 @@ impl Parser<'_> {
         })
     }
 
+    fn synchronize(&mut self) {
+        while !self.is_at_end() {
+            if self.previous().val == TokenValue::Semicolon {
+                return;
+            }
+            if let TokenValue::If | TokenValue::Let | TokenValue::Print | TokenValue::While =
+                self.peek().val
+            {
+                return;
+            }
+            self.advance();
+        }
+    }
+
     fn block_statement(&mut self) -> Result<Stmt> {
         self.advance();
         let statements = self.block()?;
@@ -294,20 +308,6 @@ impl Parser<'_> {
         }
         self.consume(TokenValue::RightParen, "Right paren expected.")?;
         Ok(parameters)
-    }
-
-    // TODO: 場所を変える、advance()を消す
-    fn synchronize(&mut self) {
-        // self.advance();
-        while !self.is_at_end() {
-            if self.previous().val == TokenValue::Semicolon {
-                return;
-            }
-            if let TokenValue::If | TokenValue::Let | TokenValue::Print = self.peek().val {
-                return;
-            }
-            self.advance();
-        }
     }
 
     fn consume(&mut self, expected: TokenValue, msg: &str) -> Result<&Token> {
