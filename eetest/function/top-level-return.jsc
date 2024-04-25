@@ -1,0 +1,5 @@
+print(1);
+//out 1
+return 2;
+//out 2
+print(3);

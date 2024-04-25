@@ -42,12 +42,12 @@ impl Interpreter {
             }
         }
 
-        result.map_err(|e| {
-            vec![match e {
-                Runtime::Error(e) => e,
-                _ => unreachable!(),
-            }]
-        })
+        match result {
+            Ok(v) => Ok(v),
+            Err(Runtime::Return(v)) => Ok(v),
+            Err(Runtime::Error(e)) => Err(vec![e]),
+            Err(Runtime::Break(_)) => Err(vec![Error::new(0, "break", "Break from top level")]),
+        }
     }
 
     fn execute(&mut self, stmt: &Stmt) -> Result<Value> {

@@ -1,0 +1,5 @@
+print(1);
+//out 1
+break;
+//err [line 2] Error at 'break': Break from top level
+print(2);
