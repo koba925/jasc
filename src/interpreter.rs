@@ -8,7 +8,7 @@ use crate::token::{Token, TokenValue};
 
 #[derive(Debug, PartialEq)]
 pub enum Runtime {
-    Break(Value),
+    Break(Token, Value),
     Error(Error),
     Return(Value),
 }
@@ -46,14 +46,16 @@ impl Interpreter {
             Ok(v) => Ok(v),
             Err(Runtime::Return(v)) => Ok(v),
             Err(Runtime::Error(e)) => Err(vec![e]),
-            Err(Runtime::Break(_)) => Err(vec![Error::new(0, "break", "Break from top level")]),
+            Err(Runtime::Break(ref token, _)) => {
+                Err(vec![Error::from_token(token, "Break from top level")])
+            }
         }
     }
 
     fn execute(&mut self, stmt: &Stmt) -> Result<Value> {
         match stmt {
             Stmt::Block(statements) => self.block(statements),
-            Stmt::Break(expr) => self.break_(expr),
+            Stmt::Break(token, expr) => self.break_(token, expr),
             Stmt::Expression(expr) => self.evaluate(expr),
             Stmt::If(condition, consequence, alternative) => {
                 self.if_(condition, consequence, alternative)
@@ -82,12 +84,12 @@ impl Interpreter {
         result
     }
 
-    fn break_(&mut self, expr: &Option<Box<Expr>>) -> Result<Value> {
+    fn break_(&mut self, token: &Token, expr: &Option<Box<Expr>>) -> Result<Value> {
         let mut val = Value::Null;
         if let Some(expr) = expr {
             val = self.evaluate(expr)?;
         }
-        Err(Runtime::Break(val))
+        Err(Runtime::Break(token.clone(), val))
     }
 
     fn if_(
@@ -133,7 +135,7 @@ impl Interpreter {
         let mut result = Ok(Value::Null);
         while Self::is_truthy(&self.evaluate(condition)?) {
             result = self.execute(statement);
-            if let Err(Runtime::Break(val)) = result {
+            if let Err(Runtime::Break(_, val)) = result {
                 result = Ok(val);
                 break;
             } else if result.is_err() {
