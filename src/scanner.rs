@@ -58,9 +58,6 @@ impl Scanner {
                 if self.peek() == '/' {
                     self.advance();
                     while !self.is_at_end() && self.peek() != '\n' {
-                        if self.peek() == '\n' {
-                            self.line += 1
-                        }
                         self.advance();
                     }
                     Ok(self.make_token(TokenValue::Skip))
