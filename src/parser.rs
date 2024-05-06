@@ -192,63 +192,45 @@ impl Parser<'_> {
         }
     }
 
-    // TODO: ２項演算子の共通パターンを関数（マクロ？）にする
     fn or(&mut self) -> Result<Expr> {
-        let mut left = self.and()?;
-
-        loop {
-            match self.peek().val {
-                TokenValue::Or => {
-                    let op = self.advance().clone();
-                    let right = self.and()?;
-                    left = Expr::Logical(op, Box::new(left), Box::new(right))
-                }
-                _ => return Ok(left),
-            }
-        }
+        self.binary(Self::and, &[TokenValue::Or], Expr::Logical)
     }
 
     fn and(&mut self) -> Result<Expr> {
-        let mut left = self.term()?;
-
-        loop {
-            match self.peek().val {
-                TokenValue::And => {
-                    let op = self.advance().clone();
-                    let right = self.term()?;
-                    left = Expr::Logical(op, Box::new(left), Box::new(right))
-                }
-                _ => return Ok(left),
-            }
-        }
+        self.binary(Self::term, &[TokenValue::And], Expr::Logical)
     }
 
     fn term(&mut self) -> Result<Expr> {
-        let mut left = self.factor()?;
-
-        loop {
-            match self.peek().val {
-                TokenValue::Plus | TokenValue::Minus => {
-                    let op = self.advance().clone();
-                    let right = self.factor()?;
-                    left = Expr::Binary(op, Box::new(left), Box::new(right))
-                }
-                _ => return Ok(left),
-            }
-        }
+        self.binary(
+            Self::factor,
+            &[TokenValue::Plus, TokenValue::Minus],
+            Expr::Binary,
+        )
     }
 
     fn factor(&mut self) -> Result<Expr> {
-        let mut left = self.unary()?;
+        self.binary(
+            Self::unary,
+            &[TokenValue::Star, TokenValue::Slash],
+            Expr::Binary,
+        )
+    }
+
+    fn binary(
+        &mut self,
+        fn_lower: fn(&mut Self) -> Result<Expr>,
+        target_token: &[TokenValue],
+        target_node: fn(Token, Box<Expr>, Box<Expr>) -> Expr,
+    ) -> Result<Expr> {
+        let mut left = fn_lower(self)?;
 
         loop {
-            match self.peek().val {
-                TokenValue::Star | TokenValue::Slash => {
-                    let op = self.advance().clone();
-                    let right = self.unary()?;
-                    left = Expr::Binary(op, Box::new(left), Box::new(right))
-                }
-                _ => return Ok(left),
+            if target_token.contains(&self.peek().val) {
+                let op = self.advance().clone();
+                let right = fn_lower(self)?;
+                left = target_node(op, Box::new(left), Box::new(right));
+            } else {
+                return Ok(left);
             }
         }
     }
