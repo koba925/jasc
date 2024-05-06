@@ -8,7 +8,6 @@ pub struct Error {
     pub msg: String,
 }
 
-// TODO:locationにタブや改行が含まれているときはエスケープして出力する（{:?}でいけるか？）
 impl Error {
     pub fn new(line: usize, location: &str, msg: &str) -> Error {
         Error {
@@ -31,7 +30,9 @@ impl Error {
         } else {
             eprintln!(
                 "[line {}] Error at '{}': {}",
-                self.line, self.location, self.msg
+                self.line,
+                self.location.escape_debug(),
+                self.msg
             )
         }
     }
