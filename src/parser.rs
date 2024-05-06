@@ -173,7 +173,7 @@ impl Parser<'_> {
     }
 
     fn ternary(&mut self) -> Result<Expr> {
-        let first = self.term()?;
+        let first = self.or()?;
 
         match self.peek().val {
             TokenValue::Question => {
@@ -189,6 +189,37 @@ impl Parser<'_> {
                 ))
             }
             _ => Ok(first),
+        }
+    }
+
+    // TODO: ２項演算子の共通パターンを関数（マクロ？）にする
+    fn or(&mut self) -> Result<Expr> {
+        let mut left = self.and()?;
+
+        loop {
+            match self.peek().val {
+                TokenValue::Or => {
+                    let op = self.advance().clone();
+                    let right = self.and()?;
+                    left = Expr::Logical(op, Box::new(left), Box::new(right))
+                }
+                _ => return Ok(left),
+            }
+        }
+    }
+
+    fn and(&mut self) -> Result<Expr> {
+        let mut left = self.term()?;
+
+        loop {
+            match self.peek().val {
+                TokenValue::And => {
+                    let op = self.advance().clone();
+                    let right = self.term()?;
+                    left = Expr::Logical(op, Box::new(left), Box::new(right))
+                }
+                _ => return Ok(left),
+            }
         }
     }
 
@@ -275,6 +306,8 @@ impl Parser<'_> {
             }
             TokenValue::Function => self.function(),
             TokenValue::Identifier => Ok(Expr::Variable(token.clone())),
+            TokenValue::True => Ok(Expr::Literal(Value::Bool(true))),
+            TokenValue::False => Ok(Expr::Literal(Value::Bool(false))),
             _ => Err(Error::from_token(
                 token,
                 &format!("Expression expected, found `{}`", token.val),

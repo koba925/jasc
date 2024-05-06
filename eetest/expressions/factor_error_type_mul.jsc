@@ -1,0 +1,2 @@
+print false * 1;
+//err [line 1] Error at '*': Operands must be two numbers.

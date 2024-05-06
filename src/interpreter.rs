@@ -122,7 +122,6 @@ impl Interpreter {
         Ok(Value::Null)
     }
 
-    // TODO: トップレベルでreturnしたら値を返して正常終了
     fn return_(&mut self, expr: &Option<Box<Expr>>) -> Result<Value> {
         let mut val = Value::Null;
         if let Some(expr) = expr {
@@ -153,6 +152,7 @@ impl Interpreter {
             Expr::Function(parameters, statements) => self.function(parameters, statements),
             Expr::Grouping(expr) => self.evaluate(expr),
             Expr::Literal(value) => Ok(value.clone()),
+            Expr::Logical(op, left, right) => self.logical(op, left, right),
             Expr::Ternary(op, first, second, third) => self.ternary(op, first, second, third),
             Expr::Unary(op, right) => self.unary(op, right),
             Expr::Variable(name) => self.variable(name),
@@ -165,6 +165,20 @@ impl Interpreter {
             .borrow_mut()
             .assign(name, val)
             .map_err(Runtime::Error)
+    }
+
+    fn logical(&mut self, op: &Token, left: &Expr, right: &Expr) -> Result<Value> {
+        let left_val = self.evaluate(left)?;
+
+        match op.val {
+            TokenValue::And => Ok(Value::Bool(
+                Self::is_truthy(&left_val) && Self::is_truthy(&self.evaluate(right)?),
+            )),
+            TokenValue::Or => Ok(Value::Bool(
+                Self::is_truthy(&left_val) || Self::is_truthy(&self.evaluate(right)?),
+            )),
+            _ => Err(Runtime::from_token(op, "Unknown operation.")),
+        }
     }
 
     fn binary(&mut self, op: &Token, left: &Expr, right: &Expr) -> Result<Value> {
@@ -270,6 +284,7 @@ impl Interpreter {
 
     fn is_truthy(val: &Value) -> bool {
         match val {
+            Value::Bool(b) => *b,
             Value::Number(n) => n != &0.0,
             Value::Null | Value::Undefined => false,
             _ => true,
