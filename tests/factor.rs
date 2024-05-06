@@ -41,3 +41,9 @@ fn mul_no_semicolon_after_3() {
 fn mul_missing_right() {
     run::err1("12*;", 1, ";", "Expression expected, found `;`");
 }
+
+#[test]
+fn type_mismatch() {
+    run::err1("1 / false;", 1, "/", "Operands must be two numbers.");
+    run::err1("true / 1;", 1, "/", "Operands must be two numbers.");
+}

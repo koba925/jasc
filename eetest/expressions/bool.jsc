@@ -1,0 +1,46 @@
+print true;
+//out true
+print false;
+//out false
+
+print true && true;
+//out true
+print true && false;
+//out false
+print false && true;
+//out false
+print false && false;
+//out false
+
+print 1 && true;
+//out true
+print true && 0;
+//out false
+print 1 && 0;
+//out false
+
+print true || true;
+//out true
+print true || false;
+//out true
+print false || true;
+//out true
+print false || false;
+//out false
+
+print 0 || true;
+//out true
+print false || 0;
+//out false
+print 0 || 1;
+//out true
+
+
+print (true);
+//out true
+print(false);
+//out false
+print true || false && false;
+//out true
+print (true || false) && false;
+//out false

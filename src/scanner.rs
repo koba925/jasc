@@ -11,6 +11,7 @@ pub struct Scanner {
     line: usize,
 }
 
+// TODO: multipeekを使う
 impl Scanner {
     pub fn new(src: String) -> Scanner {
         Scanner {
@@ -72,13 +73,11 @@ impl Scanner {
             ';' => Ok(self.make_token(TokenValue::Semicolon)),
             '=' => Ok(self.make_token(TokenValue::Equal)),
             ',' => Ok(self.make_token(TokenValue::Comma)),
+            '&' => self.two_letter_op_or_error('&', TokenValue::And),
+            '|' => self.two_letter_op_or_error('|', TokenValue::Or),
             c if c.is_ascii_digit() => Ok(self.number()),
             c if Self::is_identifier_char(c) => Ok(self.identifier()),
-            c => Err(Error::new(
-                self.line,
-                &c.to_string(),
-                "Unexpected character.",
-            )),
+            c => Err(self.error(&c.to_string(), "Unexpected character.")),
         }
     }
 
@@ -88,6 +87,18 @@ impl Scanner {
                 self.line += 1
             }
             self.advance();
+        }
+    }
+
+    fn two_letter_op_or_error(&mut self, second: char, op: TokenValue) -> Result<Token, Error> {
+        if self.peek() == second {
+            self.advance();
+            Ok(self.make_token(op))
+        } else {
+            Err(self.error(
+                &self.peek().to_string(),
+                &format!("Expected '{}'.", &second),
+            ))
         }
     }
 
@@ -111,6 +122,8 @@ impl Scanner {
             "print" => self.make_token(TokenValue::Print),
             "return" => self.make_token(TokenValue::Return),
             "while" => self.make_token(TokenValue::While),
+            "true" => self.make_token(TokenValue::True),
+            "false" => self.make_token(TokenValue::False),
             "break" => self.make_token(TokenValue::Break),
             _ => self.make_token(TokenValue::Identifier),
         }
@@ -138,20 +151,30 @@ impl Scanner {
         self.current >= self.src.len()
     }
 
+    // TODO: Optionを使うかmultipeekに置き換える
     fn peek(&self) -> char {
-        self.src[self.current]
+        if self.is_at_end() {
+            '\0'
+        } else {
+            self.src[self.current]
+        }
+    }
+
+    fn error(&self, location: &str, msg: &str) -> Error {
+        Error::new(self.line, if location == "\0" { "" } else { location }, msg)
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::Scanner;
+    use crate::error::Error;
     use crate::token::{Token, TokenValue};
 
     #[test]
     fn test_scanner() {
         let src =
-            "function (a, b) { let a = (1 + 2) / 3 * 4;\nif else return print while break a ? 0 : -1; }";
+            "function (a, b) { let a = (-1 + 2) / 3 * 4;\nif else return print while break a ? true : false && || ; }";
         let result = Scanner::new(src.to_string()).scan();
         let expected = vec![
             Token::new(TokenValue::Function, "function".to_string(), 1),
@@ -165,6 +188,7 @@ mod test {
             Token::new(TokenValue::Identifier, "a".to_string(), 1),
             Token::new(TokenValue::Equal, "=".to_string(), 1),
             Token::new(TokenValue::LeftParen, "(".to_string(), 1),
+            Token::new(TokenValue::Minus, "-".to_string(), 1),
             Token::new(TokenValue::Number(1.0), "1".to_string(), 1),
             Token::new(TokenValue::Plus, "+".to_string(), 1),
             Token::new(TokenValue::Number(2.0), "2".to_string(), 1),
@@ -182,10 +206,11 @@ mod test {
             Token::new(TokenValue::Break, "break".to_string(), 2),
             Token::new(TokenValue::Identifier, "a".to_string(), 2),
             Token::new(TokenValue::Question, "?".to_string(), 2),
-            Token::new(TokenValue::Number(0.0), "0".to_string(), 2),
+            Token::new(TokenValue::True, "true".to_string(), 2),
             Token::new(TokenValue::Colon, ":".to_string(), 2),
-            Token::new(TokenValue::Minus, "-".to_string(), 2),
-            Token::new(TokenValue::Number(1.0), "1".to_string(), 2),
+            Token::new(TokenValue::False, "false".to_string(), 2),
+            Token::new(TokenValue::And, "&&".to_string(), 2),
+            Token::new(TokenValue::Or, "||".to_string(), 2),
             Token::new(TokenValue::Semicolon, ";".to_string(), 2),
             Token::new(TokenValue::RightBrace, "}".to_string(), 2),
         ];
@@ -197,5 +222,43 @@ mod test {
             }
             Err(_) => panic!("Failed - result: {:?}", result),
         }
+    }
+
+    #[test]
+    fn test_and() {
+        assert_eq!(
+            Scanner::new("&&".to_string()).scan(),
+            Ok(vec![
+                Token::new(TokenValue::And, "&&".to_string(), 1),
+                Token::new(TokenValue::EOF, "".to_string(), 1),
+            ])
+        );
+        assert_eq!(
+            Scanner::new("&a".to_string()).scan(),
+            Err(vec![Error::new(1, "a", "Expected '&'.",)])
+        );
+        assert_eq!(
+            Scanner::new("&".to_string()).scan(),
+            Err(vec![Error::new(1, "", "Expected '&'.",)])
+        );
+    }
+
+    #[test]
+    fn test_or() {
+        assert_eq!(
+            Scanner::new("||".to_string()).scan(),
+            Ok(vec![
+                Token::new(TokenValue::Or, "||".to_string(), 1),
+                Token::new(TokenValue::EOF, "".to_string(), 1),
+            ])
+        );
+        assert_eq!(
+            Scanner::new("|a".to_string()).scan(),
+            Err(vec![Error::new(1, "a", "Expected '|'.",)])
+        );
+        assert_eq!(
+            Scanner::new("|".to_string()).scan(),
+            Err(vec![Error::new(1, "", "Expected '|'.",)])
+        );
     }
 }

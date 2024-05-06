@@ -1,5 +1,6 @@
 use crate::token::{Token, TokenValue};
 
+// TODO: 文字の位置を覚える
 #[derive(Debug, PartialEq)]
 pub struct Error {
     pub line: usize,
@@ -7,6 +8,7 @@ pub struct Error {
     pub msg: String,
 }
 
+// TODO:locationにタブや改行が含まれているときはエスケープして出力する（{:?}でいけるか？）
 impl Error {
     pub fn new(line: usize, location: &str, msg: &str) -> Error {
         Error {

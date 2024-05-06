@@ -59,3 +59,9 @@ fn add_missing_right_2_lines() {
         ],
     );
 }
+
+#[test]
+fn type_mismatch() {
+    run::err1("true + 1;", 1, "+", "Operands must be two numbers.");
+    run::err1("1 - false;", 1, "-", "Operands must be two numbers.");
+}

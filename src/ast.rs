@@ -26,6 +26,7 @@ fn vec_to_str<T: Display>(v: &Vec<T>) -> String {
 pub enum Value {
     Function(Vec<Token>, Vec<Stmt>, Rc<RefCell<Environment>>),
     Number(f64),
+    Bool(bool),
     Null,
     Undefined,
 }
@@ -38,6 +39,7 @@ impl std::fmt::Display for Value {
                 let names = parameters.iter().map(|p| &p.lexeme).collect();
                 write!(f, "(function {})", vec_to_str(&names))
             }
+            Value::Bool(b) => write!(f, "{}", if *b { "true" } else { "false" }),
             Value::Number(n) => write!(f, "{}", n),
             Value::Null => write!(f, "null"),
             Value::Undefined => write!(f, "undefined"),
@@ -54,6 +56,7 @@ pub enum Expr {
     Function(Vec<Token>, Vec<Stmt>),
     Grouping(Box<Expr>),
     Literal(Value),
+    Logical(Token, Box<Expr>, Box<Expr>),
     Ternary(Token, Box<Expr>, Box<Expr>, Box<Expr>),
     Unary(Token, Box<Expr>),
     Variable(Token),
@@ -85,6 +88,9 @@ impl std::fmt::Display for Expr {
             }
             Expr::Grouping(expr) => write!(f, "(group {})", expr),
             Expr::Literal(val) => write!(f, "{}", val),
+            Expr::Logical(op, left, right) => {
+                write!(f, "({} {} {})", op.lexeme, left, right)
+            }
             Expr::Ternary(op, first, second, third) => {
                 write!(f, "({} {} {} {})", op.lexeme, first, second, third)
             }

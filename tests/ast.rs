@@ -6,13 +6,20 @@ fn number() {
 }
 
 #[test]
+fn test_bool() {
+    run::parse("true;", "(expression true)");
+    run::parse("false;", "(expression false)");
+}
+
+#[test]
 fn unary() {
-    run::parse("-123;", "(expression (- 123))")
+    run::parse("-123;", "(expression (- 123))");
+    run::parse("-true;", "(expression (- true))");
 }
 
 #[test]
 fn term() {
-    run::parse("12 * -34 / 56;", "(expression (/ (* 12 (- 34)) 56))")
+    run::parse("12 * -34 / 56;", "(expression (/ (* 12 (- 34)) 56))");
 }
 
 #[test]
@@ -20,7 +27,7 @@ fn factor() {
     run::parse(
         "12+-34*56-78/90;",
         "(expression (- (+ 12 (* (- 34) 56)) (/ 78 90)))",
-    )
+    );
 }
 
 #[test]
@@ -28,7 +35,11 @@ fn grouping() {
     run::parse(
         "((12+-34)*56-78)/90;",
         "(expression (/ (group (- (* (group (+ 12 (- 34))) 56) 78)) 90))",
-    )
+    );
+    run::parse(
+        "true && (-true || false);",
+        "(expression (&& true (group (|| (- true) false))))",
+    );
 }
 
 #[test]
@@ -39,11 +50,27 @@ fn ternary() {
         "1 ? 2 ? 3 : 4 : 5 ? 6 : 7;",
         "(expression (? 1 (? 2 3 4) (? 5 6 7)))",
     );
+    run::parse("true ? 1 : false;", "(expression (? true 1 false))");
+}
+
+#[test]
+fn or() {
+    run::parse("true || -false;", "(expression (|| true (- false)))");
+    run::parse(
+        "true || false && true;",
+        "(expression (|| true (&& false true)))",
+    );
+}
+
+#[test]
+fn and() {
+    run::parse("true && -false;", "(expression (&& true (- false)))");
 }
 
 #[test]
 fn let_() {
     run::parse("let a = 1;", "(let a 1)");
+    run::parse("let a = true;", "(let a true)");
 }
 
 #[test]
@@ -54,6 +81,7 @@ fn assignment() {
         "(expression (assignment a (+ (var b) (var c))))",
     );
     run::parse("a = b = 3;", "(expression (assignment a (assignment b 3)))");
+    run::parse("a = true;", "(expression (assignment a true))");
 }
 
 #[test]
